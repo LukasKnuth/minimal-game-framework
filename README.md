@@ -20,7 +20,6 @@ To contribute to this project, just fork the project here on GitHub, do your wor
 
 ## To Do
 
-* Volume/Mute implementation for SoundManager
 * Pause-able timers or game-time (like XNA) for GameLoop
 * Basic "figure"-class, implementing the standard listeners and default functions (like "getWidth()")
 * Tutorials on certain aspects (like collision detection, square and circle)

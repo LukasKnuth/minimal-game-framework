@@ -5,7 +5,30 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class offers the basic logic to play sounds when predefined Events occur.
+ * This class offers the basic logic to play sounds when certain events occur.</p>
+ * Due to restrictions in the "Java SE 6" library, the <b>supported file-formats are
+ * "wav", "au" and "aiff"</b><br>
+ * The samples can be either 8-bit or 16-bit, with sampling rate from 8 kHz to 48 kHz</p>
+ *
+ * The basic workflow to get music playing in your game is:
+ * <ol>
+ *     <li>Create {@code Sound}-instances of your sound/music files</li>
+ *     <li>Populate the "music library" with them</li>
+ *     <li>Perform actions (play, mute, etc) on certain sounds</li>
+ * </ol>
+ * To identify the different sounds, a consistent "event name" is used. This event-name
+ *  binds a sound to a occurring event (by logic). For example, an explosion might have
+ *  the event-name "explosion".</p>
+ *
+ * To get your sound-files ready for playback, place them inside a resource-package (a
+ *  normal package which only contains resources like sound/graphics) and follow these
+ *  steps:
+ * <ol>
+ *     <li>Create a {@code Sound}-object from the file</li>
+ *     <li>Choose a corresponding event-name for the new sound</li>
+ *     <li>Add it to the music-library by using the {@link #addSound(Sound)}-method</li>
+ *     <li>Use the corresponding methods to interact with the sound (e.g. {@link #play(String)}</li>
+ * </ol>
  * @author Lukas Knuth
  * @version 1.0
  */
@@ -25,6 +48,35 @@ public enum SoundManager {
     private SoundManager(){
         sounds = new HashMap<String, Sound>(8);
         paused = new HashMap<String, Integer>(8);
+    }
+
+    /**
+     * Set the playback-volume for the given {@code Sound}-event to the
+     *  given amount in percent.
+     * @param event_name the event-name of the desired sound.
+     * @param percent a percent-number (between 0 and 100) where {@code 100} means
+     *  <i>maximum volume</i> and {@code 0} means <i>minimum volume</i>.
+     */
+    public void setVolume(String event_name, int percent){
+        // Check if the sound is in the library:
+        if (!sounds.containsKey(event_name))
+            throw new IllegalArgumentException("There is no sound for '"+event_name+"'");
+        // Set the new Volume:
+        sounds.get(event_name).setVolumePercent(percent);
+    }
+
+    /**
+     * Calling this method will cause the desired sound to be muted.</p>
+     * Calling the method again after muting it will set the sound-volume to the
+     *  same amount it was before muting it.
+     * @param event_name the event-name of the desired sound.
+     */
+    public void mute(String event_name){
+        // Check if the sound is in the library:
+        if (!sounds.containsKey(event_name))
+            throw new IllegalArgumentException("There is no sound for '"+event_name+"'");
+        // Mute the sound:
+        sounds.get(event_name).mute();
     }
 
     /**
