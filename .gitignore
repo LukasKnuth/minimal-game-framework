@@ -1,0 +1,7 @@
+# Ignore IntelliJ stuff
+.idea/
+mgf.iml
+
+# Ignore binary files
+*.class
+out/
