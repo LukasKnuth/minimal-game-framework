@@ -15,10 +15,12 @@ import java.util.List;
  */
 class GameCanvas extends JPanel{
 
+    /** The off-screen image */
     private Image dbImage;
+    /** The buffered graphics object to draw on */
     private Graphics dbg;
+    /** All rendered elements */
     private List<RenderContainer> renderEvents;
-
 
     /**
      * Package-private constructor. Only to be initialized
@@ -26,6 +28,26 @@ class GameCanvas extends JPanel{
      */
     GameCanvas(){
         dbg = this.getGraphics();
+    }
+
+    /**
+     * This method is implemented here, but it's user-documentation might
+     *  be found at it's wrapper in the {@link GameLoop}-class.
+     * @see GameLoop#putKeyBinding(int, int, boolean, javax.swing.Action)
+     */
+    void putKeyBinding(int key_code, int modifiers, boolean released, Action action){
+        KeyStroke stroke = KeyStroke.getKeyStroke(key_code, modifiers, released);
+        String action_name = ""+key_code+released+modifiers;
+        // Check if add or remove:
+        if (action == null){
+            // Remove binding:
+            this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(stroke);
+            this.getActionMap().remove(action_name);
+        } else {
+            // Add binding
+            this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(stroke, action_name);
+            this.getActionMap().put(action_name, action);
+        }
     }
 
     /**
@@ -39,10 +61,6 @@ class GameCanvas extends JPanel{
         Collections.sort(this.renderEvents);
     }
 
-    public Graphics getBufferedGraphics(){
-        return dbg;
-    }
-
     @Override
     public void paint( Graphics g )
     {
@@ -54,22 +72,15 @@ class GameCanvas extends JPanel{
 
     @Override
     public void update(Graphics g){
-        // Initialisierung des DoubleBuffers
+        // Double Buffer
         if (dbImage == null) {
             dbImage = createImage(this.getSize().width, this.getSize().height);
             dbg = dbImage.getGraphics();
         }
-
-        // Bildschirm im Hintergrund löschen
         dbg.setColor(getBackground());
         dbg.fillRect(0, 0, this.getSize().width, this.getSize().height);
-
-        // Auf gelöschten Hintergrund Vordergrund zeichnen
         dbg.setColor(getForeground());
         paint(dbg);
-
-        // Nun fertig gezeichnetes Bild Offscreen auf dem richtigen Bildschirm
-        // anzeigen
         g.drawImage(dbImage, 0, 0, this);
     }
 

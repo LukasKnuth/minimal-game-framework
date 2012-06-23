@@ -1,8 +1,6 @@
 package org.knuth.mgf;
 
 import javax.swing.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -18,25 +16,16 @@ import java.util.concurrent.TimeUnit;
  * The order in which the event-types are called is given in the
  *  following list:
  * <ol>
- *     <li>{@code InputEvent}</li>
  *     <li>{@code CollisionEvent}</li>
  *     <li>{@code MovementEvent}</li>
  *     <li>{@code RenderEvent}</li>
  * </ol>
  * 
- * To hook up the game loops I/O system with something that sends
- *  keyboard or mouse input, use the {@code GameLoop}-class as the
- *  listener-implementation for the desired I/O interface.</p>
- * For example, to hook up the keyboard I/O with the game-loop, use
- *  something like this:
- * <code>frame.addKeyListener(GameLoop.INSTANCE);</code>
- * Where {@code frame} is for example a {@code JFrame}.
- *
  * @author Lukas Knuth
  * @author Fabain Bottler
  * @version 1.0
  */
-public enum GameLoop implements KeyListener{
+public enum GameLoop{
 
     /** The instance to work with */
     INSTANCE;
@@ -56,13 +45,6 @@ public enum GameLoop implements KeyListener{
     /** The canvas to draw all game-elements on */
     private GameCanvas canvas;
 
-    /** The last key-event that was given by the user */
-    private KeyEvent last_key_event;
-    /** The last key-event-type that was given by the user */
-    private InputEvent.KeyEventType last_key_type;
-    
-    /** All registered {@code InputEvent}s */
-    private List<InputEvent> inputEvents;
     /** All registered {@code MovementEvent}s */
     private List<MovementEvent> movementEvents;
     /** All registered {@code RenderEvent}s */
@@ -77,10 +59,9 @@ public enum GameLoop implements KeyListener{
      * Singleton. Private constructor!
      */
     private GameLoop(){
-        inputEvents = new ArrayList<InputEvent>(4);
-        movementEvents = new ArrayList<MovementEvent>(6);
-        renderEvents = new ArrayList<RenderContainer>(20);
-        collisionEvents = new ArrayList<CollisionEvent>(5);
+        movementEvents = new ArrayList<MovementEvent>();
+        renderEvents = new ArrayList<RenderContainer>();
+        collisionEvents = new ArrayList<CollisionEvent>();
         isRunning = false;
         isFrozen = false;
         isPaused = false;
@@ -97,14 +78,6 @@ public enum GameLoop implements KeyListener{
         public void run() {
             try {
                 if (!isFrozen() && !isPaused()){
-                    // Input events:
-                    if (last_key_event != null && last_key_type != null) {
-                        for (InputEvent event : inputEvents)
-                            event.keyboardInput(last_key_event, last_key_type);
-                        // Clear
-                        last_key_type = null;
-                        last_key_event = null;
-                    }
                     // Collusion-events:
                     for (CollisionEvent event : collisionEvents)
                         event.detectCollusion(game_field.getCollusionTest());
@@ -151,6 +124,22 @@ public enum GameLoop implements KeyListener{
     }
 
     /**
+     * Binds a given key-code with the specified modifiers to a given {@link Action}.</p>
+     * Possible key-codes can be retrieved from the {@link java.awt.event.KeyEvent}-class.</p>
+     * To remove a key-binding, give {@code null} as the action.
+     * @param key_code the key-code to bind the action to. See the {@link java.awt.event.KeyEvent}-class.
+     * @param modifiers a combination of possible modifiers or {@code 0} for no modifiers.
+     *  See {@link KeyStroke#getKeyStroke(int, int)}
+     * @param released {@code true} if the action is bind to a key-release event,
+     *  {@code false} otherwise (key-press event).
+     * @param action the {@link Action} to be executed when the given key was pressed. If
+     *  value is {@code null}, the key-binding will be removed.
+     */
+    public void putKeyBinding(int key_code, int modifiers, boolean released, Action action){
+        canvas.putKeyBinding(key_code, modifiers, released, action);
+    }
+
+    /**
      * Add a new {@code MovementEvent} to the schedule.</p>
      * This method <u>will not have any effect</u>, after the {@code startLoop()}-
      *  method has already been called!
@@ -178,24 +167,12 @@ public enum GameLoop implements KeyListener{
     }
 
     /**
-     * Add a new {@code InputEvent} to the schedule.
-     * This method <u>will not have any effect</u>, after the {@code startLoop()}-
-     *  method has already been called!
-     * @param event the new element to add.
-     */
-    public void addInputEvent(InputEvent event){
-        // Check if locked:
-        if (!isLocked())
-            this.inputEvents.add(event);
-    }
-
-    /**
      * Add a new {@code CollisionEvent} to the schedule.
      * This method <u>will not have any effect</u>, after the {@code startLoop()}-
      *  method has already been called!
      * @param event the new element to add.
      */
-    public void addCollusionEvent(CollisionEvent event){
+    public void addCollisionEvent(CollisionEvent event){
         if (!isLocked())
             this.collisionEvents.add(event);
     }
@@ -298,18 +275,4 @@ public enum GameLoop implements KeyListener{
         return canvas;
     }
 
-    @Override
-    public void keyPressed(KeyEvent e) {
-        last_key_event = e;
-        last_key_type = InputEvent.KeyEventType.PRESSED;
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        last_key_event = e;
-        last_key_type = InputEvent.KeyEventType.RELEASED;
-    }
-
-    /* Unused */
-    @Override public void keyTyped(KeyEvent e) {}
 }

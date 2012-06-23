@@ -28,14 +28,17 @@ Examples for such implementations include:
 ## Contributors
 
 * Lukas Knuth (Main Developer)
+* Fabian Bottler (Contributor)
 
 To contribute to this project, just fork the project here on GitHub, do your work offline, commit to your copy and send me a pull-request. More information on that are available [here](http://git-scm.com/book/en/Distributed-Git-Contributing-to-a-Project).
 
 ## To Do
 
+* Support for "Scenes"
 * Pause-able timers or game-time (like XNA) for GameLoop
 * Tutorials on certain aspects (like collision detection, square and circle)
 * Mouse input support
 * Implement something to move a figures, detached from the repaint count (game time, XNA example)
 * Give control over repaint-count (calculate rate vs. fixed rate)
-* Input events on Keyboard by using SwingBindings (not KeyListener)
+* The viewport needs support for given width/height (also see stackoverflow.com/questions/7229226)
+* Re-Implement the z-index thing (no RenderContainer, forward the addRenderEvent to the GameCanvas)
