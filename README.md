@@ -40,5 +40,4 @@ To contribute to this project, just fork the project here on GitHub, do your wor
 * Mouse input support
 * Implement something to move a figures, detached from the repaint count (game time, XNA example)
 * Give control over repaint-count (calculate rate vs. fixed rate)
-* The viewport needs support for given width/height (also see stackoverflow.com/questions/7229226)
 * Re-Implement the z-index thing (no RenderContainer, forward the addRenderEvent to the GameCanvas)

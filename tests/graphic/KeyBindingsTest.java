@@ -1,8 +1,12 @@
 package graphic;
 
+import org.knuth.mgf.CollisionTest;
 import org.knuth.mgf.GameLoop;
+import org.knuth.mgf.Map;
+import org.knuth.mgf.RenderEvent;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -18,10 +22,10 @@ import java.awt.event.KeyEvent;
 public class KeyBindingsTest {
 
     public static void main(String[] args){
-        JFrame frame = new JFrame("Testing");
+        final JFrame frame = new JFrame("Testing");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        frame.add(GameLoop.INSTANCE.getView());
+        frame.add(GameLoop.INSTANCE.Viewport.getView());
         GameLoop.INSTANCE.putKeyBinding(KeyEvent.VK_E, 0, false, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -35,7 +39,35 @@ public class KeyBindingsTest {
             }
         });
 
-        frame.setSize(100, 100);
+        GameLoop.INSTANCE.putKeyBinding(KeyEvent.VK_SPACE, 0, false, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Space!");
+                GameLoop.INSTANCE.Viewport.setSize(400, 200);
+                frame.pack();
+            }
+        });
+
+        GameLoop.INSTANCE.Viewport.setSize(200, 200);
+        GameLoop.INSTANCE.addRenderEvent(new RenderEvent() {
+            @Override
+            public void render(Graphics g) {
+                g.setColor(Color.GREEN);
+                g.drawRect(20, 20, 80, 80);
+                g.setColor(Color.RED);
+                g.drawRect(300, 20, 80, 80);
+            }
+        }, 0);
+        frame.pack();
+        GameLoop.INSTANCE.Viewport.setBackground(Color.BLACK);
+
+        GameLoop.INSTANCE.setMap(new Map() {
+            @Override
+            public CollisionTest getCollusionTest() {
+                return null;
+            }
+        });
+        GameLoop.INSTANCE.startLoop();
         frame.setVisible(true);
     }
 }

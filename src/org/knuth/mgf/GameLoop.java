@@ -42,8 +42,8 @@ public enum GameLoop{
     /** The handler fot the main-game-thread, used to stop it */
     private ScheduledFuture game_loop_handler;
     
-    /** The canvas to draw all game-elements on */
-    private GameCanvas canvas;
+    /** The Viewport to draw all game-elements on */
+    public final Viewport Viewport;
 
     /** All registered {@code MovementEvent}s */
     private List<MovementEvent> movementEvents;
@@ -66,7 +66,7 @@ public enum GameLoop{
         isFrozen = false;
         isPaused = false;
         game_loop_executor = Executors.newSingleThreadScheduledExecutor();
-        canvas = new GameCanvas();
+        Viewport = new Viewport();
     }
 
     /**
@@ -86,7 +86,7 @@ public enum GameLoop{
                         event.move();
                 }
                 // Render-events:
-                canvas.repaint();
+                Viewport.canvas.repaint();
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -103,7 +103,7 @@ public enum GameLoop{
         if (this.game_field == null)
             throw new IllegalStateException("The game can't start without a Map!");
         // Give the Canvas all Elements to paint:
-        canvas.setRenderEvents(this.renderEvents);
+        Viewport.setRenderEvents(this.renderEvents);
         // Start the new game executor:
         game_loop_handler = game_loop_executor.scheduleAtFixedRate(
                 game_loop, 0L, 16L, TimeUnit.MILLISECONDS
@@ -136,7 +136,7 @@ public enum GameLoop{
      *  value is {@code null}, the key-binding will be removed.
      */
     public void putKeyBinding(int key_code, int modifiers, boolean released, Action action){
-        canvas.putKeyBinding(key_code, modifiers, released, action);
+        Viewport.canvas.putKeyBinding(key_code, modifiers, released, action);
     }
 
     /**
@@ -265,14 +265,6 @@ public enum GameLoop{
      */
     public boolean isFrozen(){
         return this.isFrozen;
-    }
-
-    /**
-     * Get the view which holds the drawn state of the game.
-     * @return the view of the Game.
-     */
-    public JComponent getView(){
-        return canvas;
     }
 
 }
