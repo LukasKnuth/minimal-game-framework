@@ -9,8 +9,11 @@ package org.knuth.mgf;
 public interface MovementEvent {
 
     /**
-     * Called when the AI is to think about what step to do
-     *  next.
+     * Called when the movable object should move.
+     * @param total_game_time the total time which has elapsed since the
+     *  game was first started.</p>
+     * The span does <b>not</b> include the time when the game was paused/
+     *  frozen!
      */
-    public void move();
+    public void move(TimeSpan total_game_time);
 }

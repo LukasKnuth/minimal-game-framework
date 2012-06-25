@@ -35,9 +35,7 @@ To contribute to this project, just fork the project here on GitHub, do your wor
 ## To Do
 
 * Support for "Scenes"
-* Pause-able timers or game-time (like XNA) for GameLoop
 * Tutorials on certain aspects (like collision detection, square and circle)
 * Mouse input support
-* Implement something to move a figures, detached from the repaint count (game time, XNA example)
 * Give control over repaint-count (calculate rate vs. fixed rate)
 * Re-Implement the z-index thing (no RenderContainer, forward the addRenderEvent to the GameCanvas)

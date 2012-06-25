@@ -37,6 +37,13 @@ public enum GameLoop{
     /** Weather the game is currently paused */
     private boolean isPaused;
 
+    /** The time-stamp (in microseconds) when the game-loop was started */
+    private long start_stamp;
+    /** The time-stamp of the moment the game was last paused/frozen */
+    private long pause_stamp;
+    /** The combined amount of time (in microseconds) that the game was paused/frozen */
+    private long excluded_time;
+
     /** The executor-service running the main game-loop */
     private ScheduledExecutorService game_loop_executor;
     /** The handler fot the main-game-thread, used to stop it */
@@ -81,9 +88,13 @@ public enum GameLoop{
                     // Collusion-events:
                     for (CollisionEvent event : collisionEvents)
                         event.detectCollusion(game_field.getCollusionTest());
+                    // Calculate the current game-time:
+                    TimeSpan total_game_time = new TimeSpan(
+                            System.nanoTime() - start_stamp - excluded_time
+                    );
                     // Movement-events:
                     for (MovementEvent event : movementEvents)
-                        event.move();
+                        event.move(total_game_time);
                 }
                 // Render-events:
                 Viewport.canvas.repaint();
@@ -194,6 +205,8 @@ public enum GameLoop{
         if (!isRunning){
             createMainLoop();
             isRunning = true;
+            // Store the current time:
+            start_stamp = System.nanoTime();
         }
     }
 
@@ -221,6 +234,8 @@ public enum GameLoop{
     public void play(){
         this.isFrozen = false;
         this.isPaused = false;
+        // Add the paused time to the excluded time:
+        excluded_time += System.nanoTime() - pause_stamp;
     }
 
     /**
@@ -235,6 +250,7 @@ public enum GameLoop{
      */
     public void freeze(){
         this.isFrozen = true;
+        pause_stamp = System.nanoTime();
     }
 
     /**
@@ -249,6 +265,7 @@ public enum GameLoop{
      */
     public void pause(){
         this.isPaused = true;
+        pause_stamp = System.nanoTime();
     }
 
     /**
