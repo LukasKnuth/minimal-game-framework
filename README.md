@@ -38,4 +38,3 @@ To contribute to this project, just fork the project here on GitHub, do your wor
 * Tutorials on certain aspects (like collision detection, square and circle)
 * Mouse input support
 * Give control over repaint-count (calculate rate vs. fixed rate)
-* Re-Implement the z-index thing (no RenderContainer, forward the addRenderEvent to the GameCanvas)

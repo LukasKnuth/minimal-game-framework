@@ -163,11 +163,13 @@ public enum GameLoop{
     }
 
     /**
-     * Add a new {@code RenderEvent} to the schedule.
+     * Add a new {@code RenderEvent} to the schedule.</p>
      * This method <u>will not have any effect</u>, after the {@code startLoop()}-
      *  method has already been called!
      * @param event the new element to add.
-     * @param zIndex the z-index this element should be drawn at.
+     * @param zIndex the z-index this element should be drawn at. The higher the
+     *  specified z-index, the higher is the "layer" on which the element is drawn.</p>
+     *  E.g. a z-index of {@code 2} overlaps a z-index of {@code 1}.
      */
     public void addRenderEvent(RenderEvent event, int zIndex){
         // Check if locked:
