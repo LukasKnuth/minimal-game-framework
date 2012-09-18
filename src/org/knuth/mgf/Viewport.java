@@ -73,14 +73,17 @@ public class Viewport {
     }
 
     /**
-     * Sets the {@code RenderEvent}s (packed in a {@code RenderContainer}
-     *  with their desired Z-index), which should be rendered on this
-     *  Canvas.
-     * @param renderEvents the events to be painted on this Viewport.
+     * Loads the necessary objects from the given {@code Scene} to work
+     *  with them.
+     * @param scene the scene to load from.
      */
-    void setRenderEvents(List<RenderContainer> renderEvents){
-        this.renderEvents = renderEvents;
+    void loadFromScene(Scene scene){
+        // Load the RenderEvents:
+        this.renderEvents = scene.renderEvents;
         Collections.sort(this.renderEvents);
+        // Load the key-bindings:
+        canvas.setInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW, scene.inputMap);
+        canvas.setActionMap(scene.actionMap);
     }
 
     /*
@@ -103,26 +106,6 @@ public class Viewport {
             this.setDoubleBuffered(true);
             // Set a default Viewport size
             dimension = new Dimension(600, 400);
-        }
-
-        /**
-         * This method is implemented here, but it's user-documentation might
-         *  be found at it's wrapper in the {@link GameLoop}-class.
-         * @see GameLoop#putKeyBinding(int, int, boolean, javax.swing.Action)
-         */
-        public void putKeyBinding(int key_code, int modifiers, boolean released, Action action){
-            KeyStroke stroke = KeyStroke.getKeyStroke(key_code, modifiers, released);
-            String action_name = ""+key_code+released+modifiers;
-            // Check if add or remove:
-            if (action == null){
-                // Remove binding:
-                this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).remove(stroke);
-                this.getActionMap().remove(action_name);
-            } else {
-                // Add binding
-                this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(stroke, action_name);
-                this.getActionMap().put(action_name, action);
-            }
         }
 
         @Override

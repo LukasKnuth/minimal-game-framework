@@ -1,8 +1,8 @@
 package org.knuth.mgf;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -52,48 +52,66 @@ public enum GameLoop{
     /** The Viewport to draw all game-elements on */
     public final Viewport Viewport;
 
-    /** All registered {@code MovementEvent}s */
-    private List<MovementEvent> movementEvents;
-    /** All registered {@code RenderEvent}s */
-    private List<RenderContainer> renderEvents;
-    /** All registered {@code CollisionEvent}s */
-    private List<CollisionEvent> collisionEvents;
-    
-    /** The {@code Map} the game takes place on */
-    private Map game_field;
+    /** The {@code Scene}-library of this game */
+    private final Map<String, Scene> scenes;
+    /** The currently playing scene */
+    private String current_scene;
 
     /**
      * Singleton. Private constructor!
      */
     private GameLoop(){
-        movementEvents = new ArrayList<MovementEvent>();
-        renderEvents = new ArrayList<RenderContainer>();
-        collisionEvents = new ArrayList<CollisionEvent>();
         isRunning = false;
         isFrozen = false;
         isPaused = false;
         game_loop_executor = Executors.newSingleThreadScheduledExecutor();
         Viewport = new Viewport();
+        scenes = new HashMap<String, Scene>();
     }
 
     /**
      * The {@code Runnable} used for the {@code Executor}, executing
      * all defined methods of the registered Events.
      */
-    private Runnable game_loop = new Runnable() {
+    private class GameRunnable implements Runnable {
+
+        private String scene_id;
+
+        public GameRunnable(){
+            startScene(scenes.get(current_scene));
+        }
+
+        private void startScene(Scene new_scene){
+            Viewport.loadFromScene(new_scene);
+            if (new_scene.current_state == Scene.State.PENDING)
+                new_scene.onStartCall();
+            new_scene.onResumeCall();
+            // Update to the new scene:
+            scene_id = current_scene;
+        }
+
         @Override
         public void run() {
             try {
+                // Check if scene changed and pause it:
+                if (!scene_id.equals(current_scene)){
+                    scenes.get(scene_id).onPauseCall();
+                    // Start the new scene:
+                    Scene new_scene = scenes.get(current_scene);
+                    startScene(new_scene);
+                }
+                // Get the current scene (ensure all events):
                 if (!isFrozen() && !isPaused()){
+                    Scene scene = scenes.get(scene_id);
                     // Collusion-events:
-                    for (CollisionEvent event : collisionEvents)
-                        event.detectCollusion(game_field.getCollusionTest());
+                    for (CollisionEvent event : scene.collisionEvents)
+                        event.detectCollusion(scene.game_field.getCollusionTest());
                     // Calculate the current game-time:
                     TimeSpan total_game_time = new TimeSpan(
                             System.nanoTime() - start_stamp - excluded_time
                     );
                     // Movement-events:
-                    for (MovementEvent event : movementEvents)
+                    for (MovementEvent event : scene.movementEvents)
                         event.move(total_game_time);
                 }
                 // Render-events:
@@ -110,15 +128,38 @@ public enum GameLoop{
      *  begin executing it.
      */
     private void createMainLoop(){
-        // Check if we have a Map:
-        if (this.game_field == null)
-            throw new IllegalStateException("The game can't start without a Map!");
-        // Give the Canvas all Elements to paint:
-        Viewport.setRenderEvents(this.renderEvents);
+        GameRunnable game_loop = new GameRunnable();
         // Start the new game executor:
         game_loop_handler = game_loop_executor.scheduleAtFixedRate(
                 game_loop, 0L, 16L, TimeUnit.MILLISECONDS
         );
+    }
+
+    /**
+     * <p>Calling this method will cause the game to switch to another {@code Scene}.</p>
+     * <p>When switching scenes, it is guaranteed that the live-cycle of the last scene
+     *  will be completely executed.</p>
+     * @param scene_id the ID or Name of the scene to switch to.
+     */
+    public void switchScene(String scene_id){
+        if (!scenes.containsKey(scene_id))
+            throw new NoSuchElementException("The scene '"+scene_id+"' does not exist!");
+        this.current_scene = scene_id;
+    }
+
+    /**
+     * <p>This method will add a new {@code Scene} to the game. By default, the game
+     *  will start with the scene that was added last.</p>
+     * <p>After the game has been started by the {@code startLoop()}-method,
+     *  this method will return without doing anything.</p>
+     * @param scene_id the ID or Name for the new {@code Scene}.
+     * @param scene the new scene to add.
+     */
+    public void addScene(String scene_id, Scene scene){
+        if (!isLocked()){
+            scenes.put(scene_id, scene);
+            current_scene = scene_id;
+        }
     }
 
     /**
@@ -132,72 +173,6 @@ public enum GameLoop{
      */
     private boolean isLocked(){
         return isRunning;
-    }
-
-    /**
-     * Binds a given key-code with the specified modifiers to a given {@link Action}.</p>
-     * Possible key-codes can be retrieved from the {@link java.awt.event.KeyEvent}-class.</p>
-     * To remove a key-binding, give {@code null} as the action.
-     * @param key_code the key-code to bind the action to. See the {@link java.awt.event.KeyEvent}-class.
-     * @param modifiers a combination of possible modifiers or {@code 0} for no modifiers.
-     *  See {@link KeyStroke#getKeyStroke(int, int)}
-     * @param released {@code true} if the action is bind to a key-release event,
-     *  {@code false} otherwise (key-press event).
-     * @param action the {@link Action} to be executed when the given key was pressed. If
-     *  value is {@code null}, the key-binding will be removed.
-     */
-    public void putKeyBinding(int key_code, int modifiers, boolean released, Action action){
-        Viewport.canvas.putKeyBinding(key_code, modifiers, released, action);
-    }
-
-    /**
-     * Add a new {@code MovementEvent} to the schedule.</p>
-     * This method <u>will not have any effect</u>, after the {@code startLoop()}-
-     *  method has already been called!
-     * @param event the new element to add.
-     */
-    public void addMovementEvent(MovementEvent event){
-        // Check if locked:
-        if (!isLocked())
-            this.movementEvents.add(event);
-    }
-
-    /**
-     * Add a new {@code RenderEvent} to the schedule.</p>
-     * This method <u>will not have any effect</u>, after the {@code startLoop()}-
-     *  method has already been called!
-     * @param event the new element to add.
-     * @param zIndex the z-index this element should be drawn at. The higher the
-     *  specified z-index, the higher is the "layer" on which the element is drawn.</p>
-     *  E.g. a z-index of {@code 2} overlaps a z-index of {@code 1}.
-     */
-    public void addRenderEvent(RenderEvent event, int zIndex){
-        // Check if locked:
-        if (!isLocked()){
-            RenderContainer re = new RenderContainer(zIndex,event);
-            this.renderEvents.add(re);
-        }
-    }
-
-    /**
-     * Add a new {@code CollisionEvent} to the schedule.
-     * This method <u>will not have any effect</u>, after the {@code startLoop()}-
-     *  method has already been called!
-     * @param event the new element to add.
-     */
-    public void addCollisionEvent(CollisionEvent event){
-        if (!isLocked())
-            this.collisionEvents.add(event);
-    }
-
-    /**
-     * Set the {@code Map}, on which the game is played.
-     * @param map the map to use.
-     * @see Map
-     */
-    public void setMap(Map map){
-        if (!isLocked())
-            this.game_field = map;
     }
 
     /**
@@ -217,12 +192,16 @@ public enum GameLoop{
      *  to finish first.
      */
     public void stopLoop(){
+        // Stop the game-loop:
         game_loop_handler.cancel(true);
         try {
             game_loop_executor.shutdown();
         } catch (SecurityException e){
             e.printStackTrace();
         }
+        // Stop all scenes:
+        for (Scene scene : scenes.values())
+            scene.onStopCall();
         isRunning = false;
     }
 

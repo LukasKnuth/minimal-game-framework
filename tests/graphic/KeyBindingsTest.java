@@ -1,9 +1,8 @@
 package graphic;
 
-import org.knuth.mgf.CollisionTest;
 import org.knuth.mgf.GameLoop;
-import org.knuth.mgf.Map;
 import org.knuth.mgf.RenderEvent;
+import org.knuth.mgf.Scene;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,47 +25,48 @@ public class KeyBindingsTest {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         frame.add(GameLoop.INSTANCE.Viewport.getView());
-        GameLoop.INSTANCE.putKeyBinding(KeyEvent.VK_E, 0, false, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Pressed E");
-            }
-        });
-        GameLoop.INSTANCE.putKeyBinding(KeyEvent.VK_E, 0, true, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Released E");
-            }
-        });
 
-        GameLoop.INSTANCE.putKeyBinding(KeyEvent.VK_SPACE, 0, false, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Space!");
-                GameLoop.INSTANCE.Viewport.setSize(400, 200);
-                frame.pack();
-            }
-        });
 
         GameLoop.INSTANCE.Viewport.setSize(200, 200);
-        GameLoop.INSTANCE.addRenderEvent(new RenderEvent() {
+        GameLoop.INSTANCE.addScene("main", new Scene(){
             @Override
-            public void render(Graphics g) {
-                g.setColor(Color.GREEN);
-                g.drawRect(20, 20, 80, 80);
-                g.setColor(Color.RED);
-                g.drawRect(300, 20, 80, 80);
+            public void onStart(SceneBuilder builder){
+                builder.addRenderEvent(new RenderEvent() {
+                    @Override
+                    public void render(Graphics g) {
+                        g.setColor(Color.GREEN);
+                        g.drawRect(20, 20, 80, 80);
+                        g.setColor(Color.RED);
+                        g.drawRect(300, 20, 80, 80);
+                    }
+                }, 0);
+
+                builder.putKeyBinding(KeyEvent.VK_E, 0, false, new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        System.out.println("Pressed E");
+                    }
+                });
+                builder.putKeyBinding(KeyEvent.VK_E, 0, true, new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        System.out.println("Released E");
+                    }
+                });
+
+                builder.putKeyBinding(KeyEvent.VK_SPACE, 0, false, new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        System.out.println("Space!");
+                        GameLoop.INSTANCE.Viewport.setSize(400, 200);
+                        frame.pack();
+                    }
+                });
             }
-        }, 0);
+        });
         frame.pack();
         GameLoop.INSTANCE.Viewport.setBackground(Color.BLACK);
 
-        GameLoop.INSTANCE.setMap(new Map() {
-            @Override
-            public CollisionTest getCollusionTest() {
-                return null;
-            }
-        });
         GameLoop.INSTANCE.startLoop();
         frame.setVisible(true);
     }

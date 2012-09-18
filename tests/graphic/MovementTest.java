@@ -12,26 +12,32 @@ import java.awt.event.KeyEvent;
  * @author Lukas Knuth
  * @version 1.0
  */
-public class MovementTest {
+public class MovementTest extends Scene{
 
     public static void main(String[] args){
+        new MovementTest();
+    }
+
+    public MovementTest(){
         final JFrame frame = new JFrame("Testing");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(GameLoop.INSTANCE.Viewport.getView());
 
+        GameLoop.INSTANCE.addScene("main", this);
+
+        frame.pack();
+        frame.setVisible(true);
+        GameLoop.INSTANCE.startLoop();
+    }
+
+    @Override
+    public void onStart(SceneBuilder builder){
         MovingSquare[] squares = new MovingSquare[3];
         squares[0] = new MovingSquare(0.5f, Color.GREEN, 20);
         squares[1] = new MovingSquare(0.6f, Color.RED, 60);
         squares[2] = new MovingSquare(0.7f, Color.YELLOW, 100);
 
-        GameLoop.INSTANCE.setMap(new Map() {
-            @Override
-            public CollisionTest getCollusionTest() {
-                return null;
-            }
-        });
-
-        GameLoop.INSTANCE.putKeyBinding(KeyEvent.VK_P, 0, false, new AbstractAction() {
+        builder.putKeyBinding(KeyEvent.VK_P, 0, false, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Pause with the "P"-key.
@@ -39,10 +45,19 @@ public class MovementTest {
                 else GameLoop.INSTANCE.pause();
             }
         });
+        GameLoop.INSTANCE.Viewport.setBackground(Color.BLACK);
 
-        frame.pack();
-        frame.setVisible(true);
-        GameLoop.INSTANCE.startLoop();
+        for (MovingSquare square : squares){
+            builder.addRenderEvent(square, 0);
+            builder.addMovementEvent(square);
+        }
+        builder.addRenderEvent(new RenderEvent() {
+            @Override
+            public void render(Graphics g) {
+                g.setColor(Color.WHITE);
+                g.drawString("Press P to pause", 40, 160);
+            }
+        }, 1);
     }
 
     private static class MovingSquare implements RenderEvent, MovementEvent{
@@ -62,8 +77,6 @@ public class MovementTest {
             this.color = color;
             x = 20;
             this.y = y;
-            GameLoop.INSTANCE.addRenderEvent(this, 0);
-            GameLoop.INSTANCE.addMovementEvent(this);
             blink = false;
             blink_time = TimeSpan.fromSeconds(1);
             last_blink = TimeSpan.ZERO;

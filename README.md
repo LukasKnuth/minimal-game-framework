@@ -34,7 +34,7 @@ To contribute to this project, just fork the project here on GitHub, do your wor
 
 ## To Do
 
-* Support for "Scenes"
+* Scrub mistakes in CollisionCheck (with the "u") and all JavaDoc including "weahter" instead of "whether".
 * Tutorials on certain aspects (like collision detection, square and circle)
 * Mouse input support
 * Give control over repaint-count (calculate rate vs. fixed rate)
