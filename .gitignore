@@ -5,3 +5,6 @@ mgf.iml
 # Ignore binary files
 *.class
 out/
+
+# Ignore the JavaDoc
+doc/
