@@ -199,9 +199,10 @@ public enum GameLoop{
         } catch (SecurityException e){
             e.printStackTrace();
         }
-        // Stop all scenes:
+        // Stop all scenes if they're running:
         for (Scene scene : scenes.values())
-            scene.onStopCall();
+            if (scene.current_state != Scene.State.PENDING)
+                scene.onStopCall();
         isRunning = false;
     }
 

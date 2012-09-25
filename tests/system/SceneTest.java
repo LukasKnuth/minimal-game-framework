@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 /**
  * <p>An easy test to check if and how the support for multiple scenes works.</p>
@@ -26,6 +28,13 @@ public class SceneTest {
 
         GameLoop.INSTANCE.addScene("game", new GameScene());
         GameLoop.INSTANCE.addScene("menu", new MenuScene());
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                GameLoop.INSTANCE.stopLoop();
+            }
+        });
 
         frame.pack();
         frame.setVisible(true);
