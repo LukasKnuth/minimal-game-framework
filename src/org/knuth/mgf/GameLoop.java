@@ -1,5 +1,8 @@
 package org.knuth.mgf;
 
+import org.knuth.mgf.input.InputDevice;
+import org.knuth.mgf.input.Mouse;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -57,6 +60,9 @@ public enum GameLoop{
     /** The currently playing scene */
     private String current_scene;
 
+    /** The list of registerted input-devices */
+    private Map<Class<? extends InputDevice>, InputDevice> inputDevices;
+
     /**
      * Singleton. Private constructor!
      */
@@ -67,6 +73,9 @@ public enum GameLoop{
         game_loop_executor = Executors.newSingleThreadScheduledExecutor();
         Viewport = new Viewport();
         scenes = new HashMap<String, Scene>();
+        // Input devices:
+        inputDevices = new HashMap<Class<? extends InputDevice>, InputDevice>();
+        addInputDevice(new Mouse());
     }
 
     /**
@@ -102,6 +111,10 @@ public enum GameLoop{
                 }
                 // Get the current scene (ensure all events):
                 if (!isFrozen() && !isPaused()){
+                    // Update the input devices:
+                    for (InputDevice device : inputDevices.values())
+                            device.update();
+                    // Do events:
                     Scene scene = scenes.get(scene_id);
                     // Collusion-events:
                     for (CollisionEvent event : scene.collisionEvents)
@@ -133,6 +146,38 @@ public enum GameLoop{
         game_loop_handler = game_loop_executor.scheduleAtFixedRate(
                 game_loop, 0L, 16L, TimeUnit.MILLISECONDS
         );
+    }
+
+    /**
+     * <p>Add a new {@link InputDevice} to the list of registered input-devices.</p>
+     * @param device the new device to add.
+     * @see #getInputDevice(Class)
+     */
+    public void addInputDevice(InputDevice device){
+        if (device == null)
+            throw new NullPointerException("device can't be null!");
+        inputDevices.put(device.getClass(), device);
+    }
+
+    /**
+     * <p>Get the input-device of the specified class, as it's already casted type.</p>
+     * <p>An example of calling this method might be:</p>
+     * <code>
+     *     Mouse mouse = GameLoop.INSTANCE.getInputDevice(Mouse.class);
+     * </code>
+     *
+     * @param device the input-device you desire.
+     * @param <T> the type of the device you desire.
+     * @return the device you supplied.
+     * @throws NoSuchElementException if the specified device is not registered.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getInputDevice(Class<? extends InputDevice> device){
+        if (device == null)
+            throw new NullPointerException("device can't be null!");
+        if (!inputDevices.containsKey(device))
+            throw new NoSuchElementException("Can't find device of class: "+device.getClass().getName());
+        return (T) inputDevices.get(device);
     }
 
     /**
@@ -188,8 +233,11 @@ public enum GameLoop{
     }
 
     /**
-     * Gracefully stop the game-loop, allowing all pending operations
-     *  to finish first.
+     * <p>Gracefully stop the game-loop, allowing all pending operations
+     *  to finish first.</p>
+     * <p>This will also cause all previously started scenes to be stopped.
+     *  The {@link org.knuth.mgf.Scene#onStop()}-method will not be called
+     *  otherwise!</p>
      */
     public void stopLoop(){
         // Stop the game-loop:

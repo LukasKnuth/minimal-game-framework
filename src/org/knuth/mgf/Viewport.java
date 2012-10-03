@@ -48,6 +48,22 @@ public class Viewport {
     }
 
     /**
+     * Get the viewport's X-coordinate on the whole screen.
+     * @return the X-coordinate of the viewport.
+     */
+    public int getX(){
+        return (int)canvas.getLocationOnScreen().getX();
+    }
+
+    /**
+     * Get the viewport's Y-coordinate on the whole screen.
+     * @return the Y-coordinate of the viewport.
+     */
+    public int getY(){
+        return (int)canvas.getLocationOnScreen().getY();
+    }
+
+    /**
      * Set the size of the Viewport.
      * @param width the new width in pixels.
      * @param height the new height in pixels.
