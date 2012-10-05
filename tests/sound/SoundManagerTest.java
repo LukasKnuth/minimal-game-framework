@@ -1,8 +1,8 @@
 package sound;
 
 import org.junit.Test;
-import org.knuth.mgf.Sound;
-import org.knuth.mgf.SoundManager;
+import org.knuth.mgf.sound.Sound;
+import org.knuth.mgf.sound.SoundManager;
 
 import java.io.File;
 

@@ -1,4 +1,4 @@
-package org.knuth.mgf;
+package org.knuth.mgf.sound;
 
 import javax.sound.sampled.*;
 import java.net.URL;
