@@ -1,21 +1,22 @@
 package org.knuth.mgf;
 
 /**
- * This interface is used to represent a Map, on which the Game takes
+ * <p>This interface is used to represent a Map, on which the Game takes
  *  place.</p>
- * The map is also responsible for offering a mechanism which allows to
- *  check for collusion's with Objects on this Map. This normally excludes
- *  other players/figures!
+ * <p>The map is also responsible for offering a mechanism which allows to
+ *  check for collision's with Objects on this Map. This might include other
+ *  players/figures, too, but does not need to.</p>
  * @author Lukas Knuth
  * @version 1.0
  */
 public interface Map {
 
     /**
-     * This method will return an {@code CollisionTest}-object, which can
-     *  then be used to check for a collusion with an object on this
-     *  {@code Map}-instance.
-     * @return the object to run the collusion-tests on.
+     * <p>This method should return an implementation of the
+     *  {@link CollisionTest}-interface, which can then be used to check
+     *  for a collision with an object on this {@code Map}-instance.</p>
+     * @return the {@code CollisionTest}-implementation that checks for
+     *  collisions on this {@code Map}.
      */
-    public CollisionTest getCollusionTest();
+    public CollisionTest getCollisionTest();
 }

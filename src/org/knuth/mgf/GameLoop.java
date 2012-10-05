@@ -12,12 +12,23 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The main game-loop, calling all registered events.</p>
- * Use the given methods to add your events to the game-loop. The
- *  loop will try to keep the frame-rate at 60FPS, if possible.</p>
+ * <p>The game-loop which manages the games {@code Scene}s and calls events
+ *  of the current scene. The loop will try to keep the frame-rate at 60FPS,
+ *  if possible.</p>
  *
- * The order in which the event-types are called is given in the
- *  following list:
+ * <p>The basic workflow is as follows:</p>
+ * <ol>
+ *     <li>Create a subclass of {@link Scene} which holds all events for that
+ *      part of the game.</li>
+ *     <li>Add the scene to the {@code GameLoop} by using the
+ *      {@link #addScene(String, Scene)}-method</li>
+ *     <li>Start the loop with the {@link #startLoop()}-method.</li>
+ * </ol>
+ * <p>When the game is closed, you should call the {@link #stopLoop()}-method
+ *  to ensure a graceful termination of the loop and the rest of the game.</p>
+ *
+ * <p>The order in which the events registered in the current {@code Scene}
+ *  are called in the following order:</p>
  * <ol>
  *     <li>{@code CollisionEvent}</li>
  *     <li>{@code MovementEvent}</li>
@@ -35,9 +46,9 @@ public enum GameLoop{
     
     /** Indicates if the game-loop is currently running */
     private boolean isRunning;
-    /** Weather if the game is currently frozen */
+    /** Whether if the game is currently frozen */
     private boolean isFrozen;
-    /** Weather the game is currently paused */
+    /** Whether the game is currently paused */
     private boolean isPaused;
 
     /** The time-stamp (in microseconds) when the game-loop was started */
@@ -84,12 +95,20 @@ public enum GameLoop{
      */
     private class GameRunnable implements Runnable {
 
+        /** The ID of the current scene */
         private String scene_id;
 
         public GameRunnable(){
             startScene(scenes.get(current_scene));
         }
 
+        /**
+         * <p>This method should be called to switch to another {@code Scene}.
+         *  It will take care of all initial work.</p>
+         * <p><b>Caution:</b> This method is for the internals of this class
+         *  only!</p>
+         * @param new_scene the new scene to switch to.
+         */
         private void startScene(Scene new_scene){
             Viewport.loadFromScene(new_scene);
             if (new_scene.current_state == Scene.State.PENDING)
@@ -116,9 +135,9 @@ public enum GameLoop{
                             device.update();
                     // Do events:
                     Scene scene = scenes.get(scene_id);
-                    // Collusion-events:
+                    // Collision-events:
                     for (CollisionEvent event : scene.collisionEvents)
-                        event.detectCollusion(scene.game_field.getCollusionTest());
+                        event.detectCollision(scene.game_field.getCollisionTest());
                     // Calculate the current game-time:
                     TimeSpan total_game_time = new TimeSpan(
                             System.nanoTime() - start_stamp - excluded_time
@@ -150,13 +169,16 @@ public enum GameLoop{
 
     /**
      * <p>Add a new {@link InputDevice} to the list of registered input-devices.</p>
+     * <p>After the game has been started by the {@link #startLoop()}-method,
+     *  this method will return without doing anything.</p>
      * @param device the new device to add.
      * @see #getInputDevice(Class)
      */
     public void addInputDevice(InputDevice device){
         if (device == null)
             throw new NullPointerException("device can't be null!");
-        inputDevices.put(device.getClass(), device);
+        if (!isLocked())
+            inputDevices.put(device.getClass(), device);
     }
 
     /**
@@ -181,9 +203,11 @@ public enum GameLoop{
     }
 
     /**
-     * <p>Calling this method will cause the game to switch to another {@code Scene}.</p>
-     * <p>When switching scenes, it is guaranteed that the live-cycle of the last scene
-     *  will be completely executed.</p>
+     * <p>Switch to another (previously added) {@code Scene}.</p>
+     * <p>Calling this method will cause the current scenes {@link org.knuth.mgf.Scene#onPause()}-
+     *  and the new scenes {@link org.knuth.mgf.Scene#onResume()}-method to be called. If the
+     *  new {@code Scene} has not yet been started, it's
+     *  {@link Scene#onStart(org.knuth.mgf.Scene.SceneBuilder)}-method will be called first.</p>
      * @param scene_id the ID or Name of the scene to switch to.
      */
     public void switchScene(String scene_id){
@@ -194,8 +218,8 @@ public enum GameLoop{
 
     /**
      * <p>This method will add a new {@code Scene} to the game. By default, the game
-     *  will start with the scene that was added last.</p>
-     * <p>After the game has been started by the {@code startLoop()}-method,
+     *  will start with the scene that was added <b>last</b>.</p>
+     * <p>After the game has been started by the {@link #startLoop()}-method,
      *  this method will return without doing anything.</p>
      * @param scene_id the ID or Name for the new {@code Scene}.
      * @param scene the new scene to add.
@@ -208,12 +232,11 @@ public enum GameLoop{
     }
 
     /**
-     * Checks if the game-loop is already running. If so, the state of the
-     *  events, added to their corresponding lists is considered "locked".
-     * </p>
-     * This is to prevent any writing-access to the list's, while another
+     * <p>Checks if the game-loop is already running. If so, the state of the
+     *  events, added to their corresponding lists is considered "locked".</p>
+     * <p>This is to prevent any writing-access to the list's, while another
      *  thread is using them, which would cause an
-     *  {@code ConcurrentModificationException}
+     *  {@code ConcurrentModificationException}</p>
      * @return whether if the main game-loop is currently running or not.
      */
     private boolean isLocked(){
@@ -221,7 +244,9 @@ public enum GameLoop{
     }
 
     /**
-     * Start the game-loop.
+     * <p>Starts the game-loop with the last added {@code Scene}.</p>
+     * <p>After this method has been called, you can't add any new
+     *  {@code Scene}s or {@code InputDevice}s.</p>
      */
     public void startLoop(){
         if (!isRunning){
@@ -236,8 +261,8 @@ public enum GameLoop{
      * <p>Gracefully stop the game-loop, allowing all pending operations
      *  to finish first.</p>
      * <p>This will also cause all previously started scenes to be stopped.
-     *  The {@link org.knuth.mgf.Scene#onStop()}-method will not be called
-     *  otherwise!</p>
+     *  The {@link org.knuth.mgf.Scene#onStop()}-method will <b>not be called
+     *  otherwise!</b></p>
      */
     public void stopLoop(){
         // Stop the game-loop:
@@ -255,9 +280,9 @@ public enum GameLoop{
     }
 
     /**
-     * This method will un-pause or un-freeze the game.</p>
-     * Calling this method when the game was not paused/frozen
-     *  will not have any effect.
+     * <p>This method will un-pause or un-freeze the game.</p>
+     * <p>Calling this method when the game was not paused/frozen
+     *  will not have any effect.</p>
      * @see GameLoop#pause()
      * @see GameLoop#freeze()
      */
@@ -269,12 +294,11 @@ public enum GameLoop{
     }
 
     /**
-     * This method will cause the game to freeze.</p>
-     * Calling this method will result in all characters not moving
-     *  anymore, still painting the game normally.</p>
-     * This method will not print any "pause"-message on screen and
-     *  should only be used to literally freeze the game.</p>
-     * Use the {@code play()}-method to un-freeze the game.
+     * <p>This method will freeze the game. This will result in
+     *  {@link CollisionEvent}s and {@link MovementEvent}s not being
+     *  called as long as the game is frozen. The {@link RenderEvent}s
+     *  will still be called.</p>
+     * <p>Use the {@code play()}-method to un-freeze the game.</p>
      * @see GameLoop#pause()
      * @see GameLoop#play()
      */
@@ -284,12 +308,11 @@ public enum GameLoop{
     }
 
     /**
-     * This method is used to pause the Game.</p>
-     * This will cause the game-characters (player character and AI
-     *  characters) to not move anymore, but the game will continue
-     *  to be painted. Also, pausing the game will show up a "paused"
-     *  message on-screen.</p>
-     * Use the {@code play()}-method to un-pause the game.
+     * <p>This method will pause the game. This will result in
+     *  {@link CollisionEvent}s and {@link MovementEvent}s not being
+     *  called as long as the game is paused. The {@link RenderEvent}s
+     *  will still be called.</p>
+     * <p>Use the {@code play()}-method to un-pause the game.</p>
      * @see GameLoop#freeze()
      * @see GameLoop#play()
      */
@@ -299,16 +322,16 @@ public enum GameLoop{
     }
 
     /**
-     * Weather the game is currently paused or not.
-     * @return weather the game is currently paused.
+     * Checks whether the game is currently paused or not.
+     * @return whether the game is currently paused.
      */
     public boolean isPaused(){
         return this.isPaused;
     }
 
     /**
-     * Weather the game is currently frozen or not.
-     * @return weather the game is currently frozen.
+     * Checks whether the game is currently frozen or not.
+     * @return whether the game is currently frozen.
      */
     public boolean isFrozen(){
         return this.isFrozen;

@@ -1,12 +1,11 @@
 package org.knuth.mgf;
 
 /**
- * Represents a time span of a given length. With this time-span,
+ * <p>Represents a time span of a given length. With this time-span,
  *  it's possible to create simple timers and other time-related
  *  tasks.</p>
- *
- * This class is not directly instantiable. Use the corresponding
- *  {@code fromXX()}-method to create a new instance.
+ * <p>This class is not directly instantiable. Use the corresponding
+ *  {@code fromXX()}-methods to create a new instances.</p>
  *
  * @author Lukas Knuth
  * @version 1.0

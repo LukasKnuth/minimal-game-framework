@@ -4,9 +4,9 @@ import javax.sound.sampled.*;
 import java.net.URL;
 
 /**
- * Represents a single sound which should be played when a certain event occurs.</p>
- * To play the sound, add it to the sound-library. See the {@link SoundManager}-
- *  documentation.
+ * <p>Represents a single sound that is added to the game for later playback.</p>
+ * <p>To play the sound, add it to the sound-library. See the {@link SoundManager}-
+ *  documentation.</p>
  * @author Lukas Knuth
  * @version 1.0
  */
@@ -25,7 +25,7 @@ public class Sound {
     private BooleanControl mute_control;
 
     /**
-     * Create a new {@code Sound}, which can the be added to the {@code SoundManger}
+     * Create a new {@code Sound}, which can the be added to the {@link SoundManager}
      *  for playback.
      * @param event the name of the event, used to trigger this sound.
      * @param sound_res the audio-resource of this sound.
@@ -62,9 +62,9 @@ public class Sound {
     }
 
     /**
-     * Calling this method will cause this {@code Sound} to be muted.</p>
-     * Calling the method again after muting it will set the sound-volume to the
-     *  same amount it was before muting it.
+     * <p>Calling this method will cause this {@code Sound} to be muted.</p>
+     * <p>Calling the method again after muting it will set the sound-volume to the
+     *  same amount it was before muting it.<p>
      */
     void mute(){
         // Mute/Un-mute (always the opposite one)
@@ -72,19 +72,19 @@ public class Sound {
     }
 
     /**
-     * Returns the given event-name.
-     * @return the given event-name.
+     * Returns this sounds event name.
+     * @return the event-name.
      */
     String getEventName(){
         return this.event;
     }
 
     /**
-     * Get the {@code AudioInputStream} for this {@code Sound}, which is then used
+     * <p>Get the {@code AudioInputStream} for this {@code Sound}, which is then used
      *  for playback.</p>
-     * The returned {@code AudioInputStream} is guaranteed to be valid!</p>
-     * This method is <u>not for direct use</u> and should only be accessed by the
-     *  {@code SoundManager}-class.
+     * <p>The returned {@code AudioInputStream} is guaranteed to be valid!</p>
+     * <p>This method is <u>not for direct use</u> and should only be accessed by the
+     *  {@code SoundManager}-class.</p>
      * @return the input-stream to read the sound from.
      */
     Clip getAudioClip(){
@@ -92,11 +92,11 @@ public class Sound {
     }
 
     /**
-     * Get the count of cycles this sound should loop.</p>
-     * This might return an actual number {@code > 0}, which indicates the actual
+     * <p>Get the count of cycles this sound should loop.</p>
+     * <p>This might return an actual number {@code > 0}, which indicates the actual
      *  count of cycles, the exact value of {@code 0} telling you that this sound
      *  isn't looping at all, or a number {@code < 0} to indicate, that it's looping
-     *  forever.
+     *  forever.</p>
      * @return the amount of cycles this sound is looping, exactly {@code 0}or a
      *  number {@code <= 0} to indicate, that it's looping forever.
      */
@@ -105,9 +105,9 @@ public class Sound {
     }
 
     /**
-     * Decline this sound to be looped for the given cycles, exactly {@code 0} to
+     * <p>Decline this sound to be looped for the given cycles, exactly {@code 0} to
      *  indicate that this sound is not looping at all, or forever by giving
-     *  a number {@code < 0}.
+     *  a number {@code < 0}.</p>
      * @param cycles how often the sound should be looped. Give {@code > 0} to
      *  loop it for n-times, exactly {@code 0} to not loop at all or {@code < 0}
      *  to loop forever.

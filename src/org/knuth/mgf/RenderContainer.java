@@ -1,11 +1,10 @@
 package org.knuth.mgf;
 
 /**
- * Container for a {@code RenderEvent} with information about it's z-index.</p>
- * The idea of this container is, that when the {@code RenderEvent}'s are called,
+ * <p>Container for a {@code RenderEvent} with information about it's z-index.</p>
+ * <p>The idea of this container is, that when the {@code RenderEvent}'s are called,
  *  the order in which they're called is indicated by the z-index. Therefor, this
- *  class implements {@code Comparable}, so a collection of it can be ordered
- *  using {@code Collection.sort(render_container_collection)}.
+ *  class implements {@code Comparable}, so a collection of it can be ordered.</p>
  * @author Fabian Bottler
  * @author Lukas Knuth
  * @version 1.1

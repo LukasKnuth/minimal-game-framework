@@ -3,20 +3,18 @@ package org.knuth.mgf;
 import java.awt.*;
 
 /**
- * Describes an object that can be rendered.
+ * <p>Describes an object which should be drawn on the screen.</p>
+ * <p>When the game is paused or frozen, this event will not be called.</p>
  * @author Lukas Knuth
  * @version 1.0
  */
 public interface RenderEvent {
 
-
     /**
-     * This method is used to draw the current state on the
-     *  given {@code Graphics}-object.
-     * @param g the object to draw an.
-     * @return the drawn object.
+     * This method is used to draw the current state of this object
+     *  on the given {@code Graphics}-object.
+     * @param g the object to draw on.
      */
     public void render(Graphics g);
-
 
 }

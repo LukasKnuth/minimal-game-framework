@@ -37,7 +37,6 @@ To contribute to this project, just fork the project here on GitHub, do your wor
 * Tutorials on certain aspects (like collision detection, square and circle)
 * Give control over repaint-count (calculate rate vs. fixed rate)
 
-* Finally improve documentation
-* Add start- and end-paragraph tags to the docs.
+* Make packages for sound and events
 * Ship out v.1, create tag, create "dev"-branch
 * Setup the website with github-pages and blogposts as "changelog" with rss.

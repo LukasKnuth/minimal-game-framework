@@ -9,7 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Description
+ * A simple implementation example on how the {@link Mouse}-class can be used
+ *  for input purposes.
  *
  * @author Lukas Knuth
  * @version 1.0
@@ -45,6 +46,7 @@ public class MouseInputTest {
                     g.drawString("L-Press: "+mouse.getButtonPressed(Mouse.MouseButton.LEFT), 40, 140);
                     g.drawString("M-Press: "+mouse.getButtonPressed(Mouse.MouseButton.MIDDLE), 40, 160);
                     g.drawString("R-Press: "+mouse.getButtonPressed(Mouse.MouseButton.RIGHT), 40, 180);
+                    // Determine the scrolling-direction:
                     if (last_wheel < mouse.getScrollWheelValue())
                         g.drawString("Wheel: v", 40, 200);
                     else if (last_wheel > mouse.getScrollWheelValue())

@@ -6,20 +6,21 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * This class is the Viewport of the game, the place where everything is drawn
- *  on.</p>
- * The class offers basic functionality which you'll most likely want to use
- *  at some point when creating your game. The underlying drawing takes place
- *  on a Swing component, which can be retrieved with the {@link #getView()}-
- *  method. Any other methods, exposed by the {@code JComponent}-class might
- *  be used on the returned object, although it's not advised.</p>
+ * <p>The Viewport bundles methods to manipulate the drawing-space of the game.
+ *  It also allows you to perform simple actions on the game-canvas and offers
+ *  access to the underlying {@code JComponent}.</p>
  *
- * To add the drawable Viewport to your games Swing UI, use the
- *  {@link #getView()}-method and add the returned {@code JComponent}-object
- *  to the UI.</p>
+ * <p>The underlying drawing takes place on a Swing component, which can be
+ *  retrieved with the {@link #getView()}-method. Any other methods,
+ *  exposed by the {@code JComponent}-class might be used on the returned object,
+ *  although it's <b>not advised</b>. The {@code Viewport}-class gives convenient
+ *  access to the most recently used methods.</p>
  *
- * <b>Attention:</b> Don't manually call {@code repaint()}! The {@code GameLoop}
- *  will take care of that!
+ * <p>To add the canvas to your games Swing UI, use the {@link #getView()}-method
+ *  and add the returned {@code JComponent}-object to the UI.</p>
+ *
+ * <p><b>Attention:</b> Don't manually call {@code repaint()}! The {@code GameLoop}
+ *  will take care of that!</p>
  * @author Lukas Knuth
  * @version 1.1
  */

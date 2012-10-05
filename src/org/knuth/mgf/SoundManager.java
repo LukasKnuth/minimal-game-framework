@@ -5,26 +5,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class offers the basic logic to play sounds when certain events occur.</p>
- * Due to restrictions in the "Java SE 6" library, the <b>supported file-formats are
- * "wav", "au" and "aiff"</b><br>
- * The samples can be either 8-bit or 16-bit, with sampling rate from 8 kHz to 48 kHz</p>
+ * <p>This class offers the basic logic to play sounds when certain events occur.</p>
+ * <p>Due to restrictions in the "Java SE 6" library, the <b>supported file-formats are
+ *  "wav", "au" and "aiff"</b><br>
+ *  The samples can be either 8-bit or 16-bit, with sampling rate from 8-48kHz</p>
  *
- * The basic workflow to get music playing in your game is:
+ * <p>The basic workflow to get music playing in your game is:</p>
  * <ol>
- *     <li>Create {@code Sound}-instances of your sound/music files</li>
- *     <li>Populate the "music library" with them</li>
+ *     <li>Create {@link Sound}-instances of your sound/music files</li>
+ *     <li>Populate the "music library" using the {@link #addSound(Sound)}-method</li>
  *     <li>Perform actions (play, mute, etc) on certain sounds</li>
  * </ol>
- * To identify the different sounds, a consistent "event name" is used. This event-name
+ * <p>To identify the different sounds, a consistent "event name" is used. This event-name
  *  binds a sound to a occurring event (by logic). For example, an explosion might have
  *  the event-name "explosion".</p>
  *
- * To get your sound-files ready for playback, place them inside a resource-package (a
+ * <p>To get your sound-files ready for playback, place them inside a resource-package (a
  *  normal package which only contains resources like sound/graphics) and follow these
  *  steps:
  * <ol>
- *     <li>Create a {@code Sound}-object from the file</li>
+ *     <li>Create a {@link Sound}-object from the file</li>
  *     <li>Choose a corresponding event-name for the new sound</li>
  *     <li>Add it to the music-library by using the {@link #addSound(Sound)}-method</li>
  *     <li>Use the corresponding methods to interact with the sound (e.g. {@link #play(String)}</li>
@@ -66,9 +66,9 @@ public enum SoundManager {
     }
 
     /**
-     * Calling this method will cause the desired sound to be muted.</p>
-     * Calling the method again after muting it will set the sound-volume to the
-     *  same amount it was before muting it.
+     * <p>Calling this method will cause the desired sound to be muted.</p>
+     * <p>Calling the method again after muting it will set the sound-volume to the
+     *  same amount it was before muting it.</p>
      * @param event_name the event-name of the desired sound.
      */
     public void mute(String event_name){
@@ -80,8 +80,8 @@ public enum SoundManager {
     }
 
     /**
-     * This method will continue the playback of all previously paused sounds.</p>
-     * Sounds can be paused by using the {@code pauseAll()}-method.
+     * <p>This method will continue the playback of all previously paused sounds.</p>
+     * <p>Sounds can be paused by using the {@code pauseAll()}-method.</p>
      * @see #pauseAll()
      */
     public void unpauseAll(){
@@ -100,11 +100,11 @@ public enum SoundManager {
     }
 
     /**
-     * This method is used to pause all currently played sounds, no madder if
+     * <p>This method is used to pause all currently played sounds, no madder if
      *  they where just playing or looping. One of the use-cases could be pausing
      *  every sound playback, when pausing your application.</p>
-     * To continue all sounds, paused by this method, use the {@code unpauseAll()}-
-     *  method.
+     * <p>To continue all sounds, paused by this method, use the {@code unpauseAll()}-
+     *  method.</p>
      * @see #unpauseAll()
      */
     public void pauseAll(){
@@ -115,18 +115,18 @@ public enum SoundManager {
             if (sound.getAudioClip().isActive()){
                 // Stop the sound
                 sound.getAudioClip().stop();
-                // List all playing sounds and weather their looping or not:
+                // List all playing sounds and whether their looping or not:
                 paused.put(sound.getEventName(), sound.getLoopCycles());
             }
         }
     }
 
     /**
-     * Plays the sound, identified by the given event-name for only once.</p>
-     * If you want to loop a sound or play it more frequently, you might want
+     * <p>Plays the sound, identified by the given event-name for only once.</p>
+     * <p>If you want to loop a sound or play it more frequently, you might want
      *  to use the {@code loop()}-method.</p>
-     * When this method is called, any previously playback will be stopped and
-     *  the sound will start from the beginning.
+     * <p>When this method is called, any previously playback will be stopped and
+     *  the sound will start from the beginning.</p>
      * @param event_name the event-name of the desired sound.
      * @return the length of the played sound in milliseconds or -1 if
      *  there was a problem reading the length.
@@ -148,13 +148,13 @@ public enum SoundManager {
     }
 
     /**
-     * Will loop the sound identified by the given {@code event_name}.</p>
-     * This is thought as a method for playing background noises (for example). When
+     * <p>Will loop the sound identified by the given {@code event_name}.</p>
+     * <p>This is thought as a method for playing background noises (for example). When
      *  specifying the {@code loop_cycles}, you can either give a number
      *  {@code > 0} to specify how often the sound should be looped, or a number of
      *  {@code <= 0} to make it loop "forever".</p>
      * To stop a sound which is continuously looping, use the {@code stop()}-method.</p>
-     * If a sound is already looping, calling this method will not have any effect!
+     * <p>If a sound is already looping, calling this method will not have any effect!</p>
      * @param event_name the event-name of the desired sound.
      * @param loop_cycles how often the sound should be looped. Give {@code > 0} to
      *  loop it for n-times or {@code <= 0} to loop forever.
@@ -179,12 +179,12 @@ public enum SoundManager {
     }
 
     /**
-     * This method should be used to stop a currently playing sound.</p>
-     * A common case of usage for this method is, when you are "endlessly" playing a
+     * <p>This method should be used to stop a currently playing sound.</p>
+     * <p>A common case of usage for this method is, when you are "endlessly" playing a
      *  sound (by using the {@code loop()}-method) and now want to stop it.</p>
-     * Stopping a sound will also cause it to be set to it's beginning, so any further
+     * <p>Stopping a sound will also cause it to be set to it's beginning, so any further
      *  playback using either the {@code loop()} or {@code play()}-methods will start
-     *  from the beginning again.
+     *  from the beginning again.</p>
      * @param event_name the event-name of the desired sound.
      * @throws IllegalArgumentException if the specified {@code event_name}
      *  is not in the media-library.
@@ -201,9 +201,9 @@ public enum SoundManager {
     }
 
     /**
-     * Add a sound to the "media library" for later playback.</p>
-     * To play this sound, use the {@code play(String)}-method with the event-
-     *  name, you choose for this sound.
+     * <p>Add a sound to the "media library" for later playback.</p>
+     * <p>To play this sound, use the {@code play(String)}-method with the event-
+     *  name, you choose for this sound.</p>
      * @param sound the sound to add to the "media library".
      * @see #play(String)
      */

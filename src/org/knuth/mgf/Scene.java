@@ -10,7 +10,7 @@ import java.util.List;
  * <p>This is a very easy way to separate multiple "scenes" in the game from one
  *  another. An example might be the menu and the game itself.</p>
  *
- * <h2>Building Scenes</h2>
+ * <h3>Building Scenes</h3>
  * <p>Scenes are build by extending the {@code Scene}-class as overwriting one or
  *  multiple of the live-cycle hooks.</p>
  * <p>A scene must be added to the {@code GameLoop} (for example in the game-
@@ -25,7 +25,7 @@ import java.util.List;
  *         <th>Description</th>
  *     </tr>
  *     <tr>
- *         <td>{@code onStart}</td>
+ *         <td>{@link #onStart}</td>
  *         <td>
  *             <p>This method will be called when the {@code Scene} is first created
  *              and will only be called <b>once</b>.</p>
@@ -35,7 +35,7 @@ import java.util.List;
  *         </td>
  *     </tr>
  *     <tr>
- *         <td>{@code onResume}</td>
+ *         <td>{@link #onResume}</td>
  *         <td>
  *             <p>Other than {@code onStart}, this method will be called every time
  *              a scene is started or restarted, including the first start right after
@@ -45,18 +45,18 @@ import java.util.List;
  *         </td>
  *     </tr>
  *     <tr>
- *         <td>{@code onPause}</td>
+ *         <td>{@link #onPause}</td>
  *         <td>
  *             <p>If another scene is coming to the front, this method is called to
  *              <i>pause</i> any running or pending actions, before the other scene
  *              takes over.</p>
  *             <p>If a scene has been paused, it's not guaranteed that it will be
  *              restarted. The only method which is guaranteed to be called is the
- *              {@code onStop}-method.</p>
+ *              {@link #onStop}-method.</p>
  *         </td>
  *     </tr>
  *     <tr>
- *         <td>{@code onStop}</td>
+ *         <td>{@link #onStop}</td>
  *         <td>
  *             <p>This Hook will be called, when the {@code GameLoop} (and therefor
  *              the whole game) is shutting down. It should be used to free any
@@ -101,7 +101,7 @@ public class Scene {
         private SceneBuilder(){}
 
         /**
-         * Add a new {@code MovementEvent} to this scene.
+         * Add a new {@link MovementEvent} to this scene.
          * @param event the new element to add.
          */
         public void addMovementEvent(MovementEvent event){
@@ -111,11 +111,11 @@ public class Scene {
         }
 
         /**
-         * Add a new {@code RenderEvent} to the scene.</p>
+         * Add a new {@link RenderEvent} to the scene.
          * @param event the new element to add.
          * @param zIndex the z-index this element should be drawn at. The higher the
-         *  specified z-index, the higher is the "layer" on which the element is drawn.</p>
-         *  E.g. a z-index of {@code 2} overlaps a z-index of {@code 1}.
+         *  specified z-index, the higher is the "layer" on which the element is drawn.
+         *  <p>E.g. a z-index of {@code 2} overlaps a z-index of {@code 1}.</p>
          */
         public void addRenderEvent(RenderEvent event, int zIndex){
             // Check if locked:
@@ -126,9 +126,9 @@ public class Scene {
         }
 
         /**
-         * <p>Add a new {@code CollisionEvent} to the scene.</p>
+         * <p>Add a new {@link CollisionEvent} to the scene.</p>
          * <p>If you need to use any {@code CollisionEvent}s in this scene, you'll also
-         *  need to add a {@code Map} to perform the collision checks on.</p>
+         *  need to add a {@link Map} to perform the collision checks on.</p>
          * @param event the new element to add.
          * @see #setMap(Map)
          */
@@ -138,7 +138,7 @@ public class Scene {
         }
 
         /**
-         * Set the {@code Map}, on which the game is played.
+         * Set the {@link Map}, on which the game is played.
          * @param map the map to use.
          * @see Map
          */
@@ -148,9 +148,9 @@ public class Scene {
         }
 
         /**
-         * Binds a given key-code with the specified modifiers to a given {@link javax.swing.Action}.</p>
-         * Possible key-codes can be retrieved from the {@link java.awt.event.KeyEvent}-class.</p>
-         * To remove a key-binding, give {@code null} as the action.
+         * <p>Binds a given key-code with the specified modifiers to a given {@link javax.swing.Action}.</p>
+         * <p>Possible key-codes can be retrieved from the {@link java.awt.event.KeyEvent}-class.</p>
+         * <p>To remove a key-binding, give {@code null} as the action.</p>
          * @param key_code the key-code to bind the action to. See the {@link java.awt.event.KeyEvent}-class.
          * @param modifiers a combination of possible modifiers or {@code 0} for no modifiers.
          *  See {@link javax.swing.KeyStroke#getKeyStroke(int, int)}
@@ -174,15 +174,15 @@ public class Scene {
             }
         }
     }
-    /** All registered {@code MovementEvent}s */
+    /** All registered {@link MovementEvent}s */
     final List<MovementEvent> movementEvents;
-    /** All registered {@code RenderEvent}s */
+    /** All registered {@link RenderEvent}s */
     final List<RenderContainer> renderEvents;
-    /** All registered {@code CollisionEvent}s */
+    /** All registered {@link CollisionEvent}s */
     final List<CollisionEvent> collisionEvents;
-    /** The {@code Map} the game takes place on */
+    /** The {@link Map} the game takes place on */
     Map game_field;
-    /** The {@code Map} with all key-bindings for this scene */
+    /** The {@link Map} with all key-bindings for this scene */
     final InputMap inputMap;
     final ActionMap actionMap;
 
@@ -198,10 +198,10 @@ public class Scene {
     }
 
     /**
-     * Called by the {@code GameLoop} to do basic work, then calls
+     * Called by the {@link GameLoop} to do basic work, then calls
      *  the {@link #onStart(SceneBuilder)}-hook to do custom work.
-     * @throws IllegalStateException if the new scene added {@code CollisionEvent}s,
-     *  but did not set a {@code Map}.
+     * @throws IllegalStateException if the new scene added {@link CollisionEvent}s,
+     *  but did not set a {@link Map}.
      */
     void onStartCall(){
         // Call Hook:
@@ -214,7 +214,7 @@ public class Scene {
     }
 
     /**
-     * Called by the {@code GameLoop} to do basic work, then calls
+     * Called by the {@link GameLoop} to do basic work, then calls
      *  the {@link #onPause()}-hook to do custom work.
      */
     void onPauseCall(){
@@ -224,7 +224,7 @@ public class Scene {
     }
 
     /**
-     * Called by the {@code GameLoop} to do basic work, then calls
+     * Called by the {@link GameLoop} to do basic work, then calls
      *  the {@link #onResume()}-hook to do custom work.
      */
     void onResumeCall(){
@@ -233,7 +233,7 @@ public class Scene {
     }
 
     /**
-     * Called by the {@code GameLoop} to do basic work, then calls
+     * Called by the {@link GameLoop} to do basic work, then calls
      *  the {@link #onStop()}-hook to do custom work.
      */
     void onStopCall(){
