@@ -146,8 +146,10 @@ public enum GameLoop{
                     for (MovementEvent event : scene.movementEvents)
                         event.move(total_game_time);
                 }
-                // Render-events:
-                Viewport.canvas.repaint();
+                if (!isFrozen()){
+                    // Render-events:
+                    Viewport.canvas.repaint();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -295,9 +297,9 @@ public enum GameLoop{
 
     /**
      * <p>This method will freeze the game. This will result in
-     *  {@link CollisionEvent}s and {@link MovementEvent}s not being
-     *  called as long as the game is frozen. The {@link RenderEvent}s
-     *  will still be called.</p>
+     *  {@link CollisionEvent}s, {@link MovementEvent}s and {@link RenderEvent}s
+     *  not being called as long as the game is frozen, other than the
+     *  {@link #pause()}-method, where the game is still rendered.</p>
      * <p>Use the {@code play()}-method to un-freeze the game.</p>
      * @see GameLoop#pause()
      * @see GameLoop#play()

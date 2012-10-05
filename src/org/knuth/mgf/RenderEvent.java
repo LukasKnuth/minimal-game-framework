@@ -4,7 +4,8 @@ import java.awt.*;
 
 /**
  * <p>Describes an object which should be drawn on the screen.</p>
- * <p>When the game is paused or frozen, this event will not be called.</p>
+ * <p>When the game is frozen, this event will not be called. If it is
+ *  "only" paused, this event will still be called.</p>
  * @author Lukas Knuth
  * @version 1.0
  */
