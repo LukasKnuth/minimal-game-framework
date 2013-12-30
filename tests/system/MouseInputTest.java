@@ -5,7 +5,6 @@ import org.knuth.mgf.RenderEvent;
 import org.knuth.mgf.Scene;
 import org.knuth.mgf.input.Mouse;
 
-import javax.swing.*;
 import java.awt.*;
 
 /**
@@ -18,15 +17,8 @@ import java.awt.*;
 public class MouseInputTest {
 
     public MouseInputTest(){
-        JFrame frame = new JFrame("Mouse Test");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.add(GameLoop.INSTANCE.Viewport.getView());
-
+        GameLoop.INSTANCE.Viewport.setTitle("Mouse Input Test");
         GameLoop.INSTANCE.addScene("main", new MouseScene());
-
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
         GameLoop.INSTANCE.startLoop();
     }
 

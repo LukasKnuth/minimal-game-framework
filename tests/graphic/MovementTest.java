@@ -19,14 +19,8 @@ public class MovementTest extends Scene{
     }
 
     public MovementTest(){
-        final JFrame frame = new JFrame("Testing");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.add(GameLoop.INSTANCE.Viewport.getView());
-
+        GameLoop.INSTANCE.Viewport.setTitle("Movement Test");
         GameLoop.INSTANCE.addScene("main", this);
-
-        frame.pack();
-        frame.setVisible(true);
         GameLoop.INSTANCE.startLoop();
     }
 

@@ -2,6 +2,8 @@ package org.knuth.mgf;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,15 +31,17 @@ public class Viewport {
     /** All rendered elements */
     private List<RenderContainer> renderEvents;
 
-    /** The accual canvas to draw on. */
+    /** The actual canvas to draw on. */
     final GameCanvas canvas;
+    private final GameWindow window;
 
     /**
      * Package-private constructor. Only to be initialized
      *  by {@code GameLoop}.
      */
     Viewport(){
-        canvas = new GameCanvas();
+        this.canvas = new GameCanvas();
+        this.window = new GameWindow(canvas);
     }
 
     /**
@@ -71,6 +75,7 @@ public class Viewport {
      */
     public void setSize(int width, int height){
         canvas.setSize(width, height);
+        window.pack();
     }
 
     /**
@@ -87,6 +92,28 @@ public class Viewport {
      */
     public JComponent getView(){
         return canvas;
+    }
+
+    /**
+     * Return the games window in which the Viewport is embedded.
+     * @return the window.
+     */
+    public JFrame getWindow(){
+        return this.window;
+    }
+
+    /**
+     * Set the visibility of the game's window.
+     */
+    public void setWindowVisibility(boolean visible){
+        this.window.setVisible(visible);
+    }
+
+    /**
+     * Set the title to be display on the game's window.
+     */
+    public void setTitle(String title){
+        this.window.setTitle(title);
     }
 
     /**
@@ -160,6 +187,29 @@ public class Viewport {
             return dimension;
         }
 
+    }
+
+    class GameWindow extends JFrame{
+
+        /**
+         * Create but <b>don't</b> show a window to play the game in.
+         * @param gc the canvas to draw the game on.
+         */
+        public GameWindow(GameCanvas gc){
+            // Set some default options:
+            this.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+            this.add(gc);
+            this.pack();
+            // Close-callback to stop the game-loop.
+            this.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    GameLoop.INSTANCE.stopLoop();
+                    GameWindow.this.dispose();
+                    System.exit(0);
+                }
+            });
+        }
     }
 
 }

@@ -246,8 +246,9 @@ public enum GameLoop{
     }
 
     /**
-     * <p>Starts the game-loop with the last added {@code Scene}.</p>
-     * <p>After this method has been called, you can't add any new
+     * <p>Starts the game-loop with the last added {@code Scene}. This also shows
+     *  the game-window on the screen.</p>
+     * <p><b>Note:</b> After this method has been called, you can't add any new
      *  {@code Scene}s or {@code InputDevice}s.</p>
      */
     public void startLoop(){
@@ -256,12 +257,14 @@ public enum GameLoop{
             isRunning = true;
             // Store the current time:
             start_stamp = System.nanoTime();
+            // Show the window:
+            Viewport.setWindowVisibility(true);
         }
     }
 
     /**
      * <p>Gracefully stop the game-loop, allowing all pending operations
-     *  to finish first.</p>
+     *  to finish first. This also hides the game-window.</p>
      * <p>This will also cause all previously started scenes to be stopped.
      *  The {@link org.knuth.mgf.Scene#onStop()}-method will <b>not be called
      *  otherwise!</b></p>
@@ -271,7 +274,10 @@ public enum GameLoop{
         game_loop_handler.cancel(true);
         try {
             game_loop_executor.shutdown();
+            game_loop_executor.awaitTermination(10, TimeUnit.SECONDS);
         } catch (SecurityException e){
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         // Stop all scenes if they're running:
@@ -279,6 +285,8 @@ public enum GameLoop{
             if (scene.current_state != Scene.State.PENDING)
                 scene.onStopCall();
         isRunning = false;
+        // Hide the game-window:
+        Viewport.setWindowVisibility(false);
     }
 
     /**

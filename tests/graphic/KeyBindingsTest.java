@@ -21,12 +21,7 @@ import java.awt.event.KeyEvent;
 public class KeyBindingsTest {
 
     public static void main(String[] args){
-        final JFrame frame = new JFrame("Testing");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        frame.add(GameLoop.INSTANCE.Viewport.getView());
-
-
+        GameLoop.INSTANCE.Viewport.setTitle("Key Bindings Test");
         GameLoop.INSTANCE.Viewport.setSize(200, 200);
         GameLoop.INSTANCE.addScene("main", new Scene(){
             @Override
@@ -59,15 +54,12 @@ public class KeyBindingsTest {
                     public void actionPerformed(ActionEvent e) {
                         System.out.println("Space!");
                         GameLoop.INSTANCE.Viewport.setSize(400, 200);
-                        frame.pack();
                     }
                 });
             }
         });
-        frame.pack();
         GameLoop.INSTANCE.Viewport.setBackground(Color.BLACK);
 
         GameLoop.INSTANCE.startLoop();
-        frame.setVisible(true);
     }
 }
