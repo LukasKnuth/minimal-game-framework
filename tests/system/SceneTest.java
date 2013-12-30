@@ -34,7 +34,7 @@ public class SceneTest {
             builder.addMovementEvent(walker);
             builder.addRenderEvent(new RenderEvent() {
                 @Override
-                public void render(Graphics g) {
+                public void render(Graphics2D g) {
                     g.drawString("ESC back to menu", 10, 20);
                 }
             }, 1);
@@ -59,7 +59,7 @@ public class SceneTest {
         public void onStart(SceneBuilder builder){
             builder.addRenderEvent(new RenderEvent() {
                 @Override
-                public void render(Graphics g) {
+                public void render(Graphics2D g) {
                     g.setColor(Color.WHITE);
                     g.drawString("Menu screen...", 200, 200);
                     g.drawString("Press Space to play...", 200, 300);
@@ -102,7 +102,7 @@ public class SceneTest {
         }
 
         @Override
-        public void render(Graphics g) {
+        public void render(Graphics2D g) {
             g.setColor(Color.GREEN);
             g.fillOval((int)x, y, 40, 40);
         }

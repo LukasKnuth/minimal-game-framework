@@ -157,8 +157,9 @@ public class Viewport {
             if (renderEvents == null || renderEvents.size() < 1) return;
             // Start painting:
             super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
             for (RenderContainer event : renderEvents){
-                event.getEvent().render(g);
+                event.getEvent().render(g2d);
             }
         }
 

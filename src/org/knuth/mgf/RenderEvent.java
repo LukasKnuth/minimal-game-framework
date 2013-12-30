@@ -13,9 +13,9 @@ public interface RenderEvent {
 
     /**
      * This method is used to draw the current state of this object
-     *  on the given {@code Graphics}-object.
+     *  on the given {@code Graphics2D}-object.
      * @param g the object to draw on.
      */
-    public void render(Graphics g);
+    public void render(Graphics2D g);
 
 }

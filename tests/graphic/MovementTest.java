@@ -47,7 +47,7 @@ public class MovementTest extends Scene{
         }
         builder.addRenderEvent(new RenderEvent() {
             @Override
-            public void render(Graphics g) {
+            public void render(Graphics2D g) {
                 g.setColor(Color.WHITE);
                 g.drawString("Press P to pause", 40, 160);
             }
@@ -89,7 +89,7 @@ public class MovementTest extends Scene{
         }
 
         @Override
-        public void render(Graphics g) {
+        public void render(Graphics2D g) {
             g.setColor(color);
             if (blink) g.fillRect((int) x, (int) y, 20, 20);
             else g.drawRect((int)x, (int)y, 20, 20);
