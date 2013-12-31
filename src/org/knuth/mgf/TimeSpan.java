@@ -12,11 +12,11 @@ package org.knuth.mgf;
  */
 public class TimeSpan {
 
-    /** One millisecond in microseconds */
-    private static final int MILLISECOND_IN_MICROSECONDS = 1000000;
+    /** One millisecond in nanoseconds */
+    private static final int MILLISECOND_IN_NANOSECONDS = 1000000;
 
-    /** The time-span in micro seconds */
-    protected final long micro_seconds;
+    /** The time-span in nanoseconds */
+    protected final long nano_seconds;
 
     /** A time-span with the length of zero */
     public static final TimeSpan ZERO = new TimeSpan(0);
@@ -63,15 +63,15 @@ public class TimeSpan {
      * @return the new created {@code TimeSpan}-object.
      */
     public static TimeSpan fromMilliSeconds(long milliseconds){
-        return new TimeSpan(MILLISECOND_IN_MICROSECONDS * milliseconds);
+        return new TimeSpan(MILLISECOND_IN_NANOSECONDS * milliseconds);
     }
 
     /**
      * Private constructor, use the static builder methods.
-     * @param micro_seconds the time-span in micro seconds.
+     * @param nano_seconds the time-span in nanoseconds.
      */
-    TimeSpan(long micro_seconds){
-        this.micro_seconds = micro_seconds;
+    TimeSpan(long nano_seconds){
+        this.nano_seconds = nano_seconds;
     }
 
     /**
@@ -81,7 +81,7 @@ public class TimeSpan {
      * @return the new time-span.
      */
     public TimeSpan subtract(TimeSpan second_span){
-        return new TimeSpan(this.micro_seconds - second_span.micro_seconds);
+        return new TimeSpan(this.nano_seconds - second_span.nano_seconds);
     }
 
     /**
@@ -91,7 +91,7 @@ public class TimeSpan {
      * @return the new time-span.
      */
     public TimeSpan add(TimeSpan second_span){
-        return new TimeSpan(this.micro_seconds + second_span.micro_seconds);
+        return new TimeSpan(this.nano_seconds + second_span.nano_seconds);
     }
 
     /**
@@ -101,7 +101,7 @@ public class TimeSpan {
      * @see #isLessThen(TimeSpan)
      */
     public boolean isGreaterThen(TimeSpan second_span){
-        return this.micro_seconds > second_span.micro_seconds;
+        return this.nano_seconds > second_span.nano_seconds;
     }
 
     /**
@@ -111,6 +111,6 @@ public class TimeSpan {
      * @see #isGreaterThen(TimeSpan)
      */
     public boolean isLessThen(TimeSpan second_span){
-        return this.micro_seconds < second_span.micro_seconds;
+        return this.nano_seconds < second_span.nano_seconds;
     }
 }
