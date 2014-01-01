@@ -28,7 +28,7 @@ public class KeyBindingsTest {
             public void onStart(SceneBuilder builder){
                 builder.addRenderEvent(new RenderEvent() {
                     @Override
-                    public void render(Graphics2D g) {
+                    public void render(Graphics2D g, float interpolation) {
                         g.setColor(Color.GREEN);
                         g.drawRect(20, 20, 80, 80);
                         g.setColor(Color.RED);

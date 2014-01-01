@@ -34,7 +34,7 @@ public class SceneTest {
             builder.addMovementEvent(walker);
             builder.addRenderEvent(new RenderEvent() {
                 @Override
-                public void render(Graphics2D g) {
+                public void render(Graphics2D g, float interpolation) {
                     g.drawString("ESC back to menu", 10, 20);
                 }
             }, 1);
@@ -59,7 +59,7 @@ public class SceneTest {
         public void onStart(SceneBuilder builder){
             builder.addRenderEvent(new RenderEvent() {
                 @Override
-                public void render(Graphics2D g) {
+                public void render(Graphics2D g, float interpolation) {
                     g.setColor(Color.WHITE);
                     g.drawString("Menu screen...", 200, 200);
                     g.drawString("Press Space to play...", 200, 300);
@@ -85,6 +85,7 @@ public class SceneTest {
 
         private float x;
         private int y;
+        private float speed = 2.5f;
 
         public Walker(){
             this.x = 0;
@@ -94,7 +95,7 @@ public class SceneTest {
         @Override
         public void move(TimeSpan total_game_time) {
             if (x < GameLoop.INSTANCE.Viewport.getView().getSize().getWidth())
-                x += 2.5f;
+                x += speed;
             else {
                 x = 10f;
                 y += 30;
@@ -102,9 +103,9 @@ public class SceneTest {
         }
 
         @Override
-        public void render(Graphics2D g) {
+        public void render(Graphics2D g, float interpolation) {
             g.setColor(Color.GREEN);
-            g.fillOval((int)x, y, 40, 40);
+            g.fillOval((int)(x+speed*interpolation), y, 40, 40);
         }
     }
 }

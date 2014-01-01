@@ -30,7 +30,7 @@ public class MouseInputTest {
             builder.addRenderEvent(new RenderEvent() {
                 int last_wheel = 0;
                 @Override
-                public void render(Graphics2D g) {
+                public void render(Graphics2D g, float interpolation) {
                     Mouse mouse = GameLoop.INSTANCE.getInputDevice(Mouse.class);
                     g.setColor(Color.WHITE);
                     g.drawString("X: "+mouse.getX(), 40, 100);

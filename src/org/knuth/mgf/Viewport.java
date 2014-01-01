@@ -142,6 +142,8 @@ public class Viewport {
 
         /** The dimensions of the cavas */
         private Dimension dimension;
+        /** The current interpolation */
+        private float interpolation;
 
         /**
          * Create a new canvas to draw the game on.
@@ -152,6 +154,14 @@ public class Viewport {
             dimension = new Dimension(600, 400);
         }
 
+        /**
+         * Order a repaint of this component and provide interpolation for it.
+         */
+        public void redraw(float interpolation) {
+            this.interpolation = interpolation;
+            repaint();
+        }
+
         @Override
         public void paintComponent(Graphics g){
             if (renderEvents == null || renderEvents.size() < 1) return;
@@ -159,7 +169,7 @@ public class Viewport {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
             for (RenderContainer event : renderEvents){
-                event.getEvent().render(g2d);
+                event.getEvent().render(g2d, this.interpolation);
             }
         }
 

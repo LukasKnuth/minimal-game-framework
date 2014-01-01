@@ -6,9 +6,8 @@ import org.knuth.mgf.input.Mouse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,9 +58,16 @@ public enum GameLoop{
     private long excluded_time;
 
     /** The executor-service running the main game-loop */
-    private ScheduledExecutorService game_loop_executor;
-    /** The handler fot the main-game-thread, used to stop it */
-    private ScheduledFuture game_loop_handler;
+    private ExecutorService game_loop_executor;
+    /** Times the game is updated, per second */
+    private static final int UPDATES_PER_SECOND = 25;
+    /** Time to wait until the next game update */
+    private static final int WAIT_TICKS = 1000 / UPDATES_PER_SECOND;
+    /** The maximum repaint-count (frames) that can be skipped if the game-update takes too long */
+    private static final int MAX_FRAMESKIP = 5;
+    /** Maximum FPS */
+    private static final int MAX_FPS = 120; // TODO Make configurable
+    private static final int FPS_WAIT_TICKS = 1000 / MAX_FPS;
     
     /** The Viewport to draw all game-elements on */
     public final Viewport Viewport;
@@ -81,7 +87,7 @@ public enum GameLoop{
         isRunning = false;
         isFrozen = false;
         isPaused = false;
-        game_loop_executor = Executors.newSingleThreadScheduledExecutor();
+        game_loop_executor = Executors.newSingleThreadExecutor();
         Viewport = new Viewport();
         scenes = new HashMap<String, Scene>();
         // Input devices:
@@ -120,35 +126,59 @@ public enum GameLoop{
 
         @Override
         public void run() {
+            long next_update = System.currentTimeMillis();
+            long last_update = System.currentTimeMillis();
+            int frames_skipped;
+            float interpolation;
+            long sleep_time;
+
+            // Start the loop:
             try {
-                // Check if scene changed and pause it:
-                if (!scene_id.equals(current_scene)){
-                    scenes.get(scene_id).onPauseCall();
-                    // Start the new scene:
-                    Scene new_scene = scenes.get(current_scene);
-                    startScene(new_scene);
-                }
-                // Get the current scene (ensure all events):
-                if (!isFrozen() && !isPaused()){
-                    // Update the input devices:
-                    for (InputDevice device : inputDevices.values())
-                            device.update();
-                    // Do events:
-                    Scene scene = scenes.get(scene_id);
-                    // Collision-events:
-                    for (CollisionEvent event : scene.collisionEvents)
-                        event.detectCollision(scene.game_field.getCollisionTest());
-                    // Calculate the current game-time:
-                    TimeSpan total_game_time = new TimeSpan(
-                            System.nanoTime() - start_stamp - excluded_time
-                    );
-                    // Movement-events:
-                    for (MovementEvent event : scene.movementEvents)
-                        event.move(total_game_time);
-                }
-                if (!isFrozen()){
-                    // Render-events:
-                    Viewport.canvas.repaint();
+                while (isRunning){
+                    // Enforce Max FPS boundary:
+                    sleep_time = (last_update + FPS_WAIT_TICKS) - System.currentTimeMillis();
+                    if (sleep_time > 0) Thread.sleep(sleep_time);
+                    last_update = System.currentTimeMillis();
+                    // Update game:
+                    frames_skipped = 0;
+                    while (System.currentTimeMillis() > next_update
+                            && frames_skipped < MAX_FRAMESKIP){
+                        // Check if scene changed and pause it:
+                        if (!scene_id.equals(current_scene)){
+                            scenes.get(scene_id).onPauseCall();
+                            // Start the new scene:
+                            Scene new_scene = scenes.get(current_scene);
+                            startScene(new_scene);
+                        }
+                        // Get the current scene (ensure all events):
+                        if (!isFrozen() && !isPaused()){
+                            // Update the input devices:
+                            for (InputDevice device : inputDevices.values())
+                                device.update();
+                            // Do events:
+                            Scene scene = scenes.get(scene_id);
+                            // Collision-events:
+                            for (CollisionEvent event : scene.collisionEvents)
+                                event.detectCollision(scene.game_field.getCollisionTest());
+                            // Calculate the current game-time:
+                            TimeSpan total_game_time = new TimeSpan(
+                                    System.nanoTime() - start_stamp - excluded_time
+                            );
+                            // Movement-events:
+                            for (MovementEvent event : scene.movementEvents)
+                                event.move(total_game_time);
+                        }
+                        // Schedule next update:
+                        next_update += WAIT_TICKS;
+                        frames_skipped++;
+                    }
+                    // Repaint game:
+                    if (!isFrozen()){
+                        // Calculate interpolation for smooth animation between states:
+                        interpolation = ((float)(System.currentTimeMillis() + WAIT_TICKS - next_update)) / ((float)WAIT_TICKS);
+                        // Render-events:
+                        Viewport.canvas.redraw(interpolation);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -164,9 +194,7 @@ public enum GameLoop{
     private void createMainLoop(){
         GameRunnable game_loop = new GameRunnable();
         // Start the new game executor:
-        game_loop_handler = game_loop_executor.scheduleAtFixedRate(
-                game_loop, 0L, 16L, TimeUnit.MILLISECONDS
-        );
+        game_loop_executor.execute(game_loop);
     }
 
     /**
@@ -270,8 +298,8 @@ public enum GameLoop{
      *  otherwise!</b></p>
      */
     public void stopLoop(){
+        isRunning = false;
         // Stop the game-loop:
-        game_loop_handler.cancel(true);
         try {
             game_loop_executor.shutdown();
             game_loop_executor.awaitTermination(10, TimeUnit.SECONDS);
@@ -284,7 +312,6 @@ public enum GameLoop{
         for (Scene scene : scenes.values())
             if (scene.current_state != Scene.State.PENDING)
                 scene.onStopCall();
-        isRunning = false;
         // Hide the game-window:
         Viewport.setWindowVisibility(false);
     }

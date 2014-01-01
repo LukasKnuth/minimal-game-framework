@@ -12,10 +12,13 @@ import java.awt.*;
 public interface RenderEvent {
 
     /**
-     * This method is used to draw the current state of this object
-     *  on the given {@code Graphics2D}-object.
+     * <p>This method is used to draw the current state of this object
+     *  on the given {@code Graphics2D}-object.</p>
+     * <p>For smoother animations, use the provided interpolation-value.</p>
      * @param g the object to draw on.
+     * @param interpolation the interpolation for drawing.
      */
-    public void render(Graphics2D g);
+    public void render(Graphics2D g, float interpolation);
+    // TODO Add tutorial for interpolation usage. See http://www.koonsolo.com/news/dewitters-gameloop/
 
 }
