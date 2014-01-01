@@ -35,7 +35,17 @@ To contribute to this project, just fork the project here on GitHub, do your wor
 ## To Do
 
 * Tutorials on certain aspects (like collision detection, square and circle)
-* Give control over repaint-count (calculate rate vs. fixed rate)
+    * Five groups: Basic Training, Graphics, Sound, Physics, Gameplay
 
-* Ship out v.1, create tag, create "dev"-branch
-* Setup the website with github-pages and blogposts as "changelog" with rss.
+### Implementation
+
+* Add a configuration-system to easily load and store (file) the config. Enable engine-configuration through these as well.
+    * Enable Anti-Aliasing in three quality steps (None, Normal, High)
+    * Add a "Debugging" mode (draw a grid on-screen, an FPS counter, log like World of Goo)
+    * Fullscreen for the game-window.
+
+* Re-implement objects in the game:
+    * All objects extend "GameObject"-class (contains position, rotation, scaling. Make ALL THESE float/double!!!). Has all methods (render, collision, update) and uses overwriting. Deprecate the interfaces and only add the objects.
+    * Hitbox class to simplify collision-detection between objects (make part of GameObject??). Allow: obj1.collides(obj2)
+
+* Replace most Interfaces with classes, since interfaces can't be extended without breaking old code.
