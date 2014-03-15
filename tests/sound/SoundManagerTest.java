@@ -25,13 +25,13 @@ public class SoundManagerTest {
         System.out.println("Playing");
         Thread.sleep(1000);
 
-        manager.mute("test");
+        manager.mute("test", true);
         System.out.println("Muted.");
         Thread.sleep(3000);
 
         // TODO Why does it take ~1 second to mute/unmute? Depending on implementation??
 
-        manager.mute("test");
+        manager.mute("test", false);
         System.out.println("Unmuted");
         Thread.sleep(3000);
 
@@ -47,19 +47,19 @@ public class SoundManagerTest {
         manager.addSound(sound);
 
         manager.play("test");
-        manager.setVolume("test", 100);
+        manager.setVolume("test", 1.0f);
         System.out.println("Playing");
         Thread.sleep(2000);
 
-        manager.setVolume("test", 80);
+        manager.setVolume("test", 0.8f);
         System.out.println("80% volume");
         Thread.sleep(2000);
 
-        manager.setVolume("test", 20);
+        manager.setVolume("test", 0.2f);
         System.out.println("20% volume");
         Thread.sleep(2000);
 
-        manager.setVolume("test", 100);
+        manager.setVolume("test", 1.0f);
         System.out.println("100% volume");
         Thread.sleep(2000);
 

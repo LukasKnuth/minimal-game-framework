@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * <p><b>WARNING</b> This audio-system is only tested and confirmed working with the
+ *  official Oracle Java JRE. The OpenJRE is <b>NOT SUPPORTED</b> (it might silently
+ *  fail to work).</p>
  * <p>This class offers the basic logic to play sounds when certain events occur.</p>
  * <p>Due to restrictions in the "Java SE 6" library, the <b>supported file-formats are
  *  "wav", "au" and "aiff"</b><br>
@@ -54,10 +57,10 @@ public enum SoundManager {
      * Set the playback-volume for the given {@code Sound}-event to the
      *  given amount in percent.
      * @param event_name the event-name of the desired sound.
-     * @param percent a percent-number (between 0 and 100) where {@code 100} means
-     *  <i>maximum volume</i> and {@code 0} means <i>minimum volume</i>.
+     * @param percent a percent-number (between 0.0 and 1.0) where {@code 1.0} means
+     *  <i>maximum volume</i> and {@code 0.0} means <i>minimum volume</i>.
      */
-    public void setVolume(String event_name, int percent){
+    public void setVolume(String event_name, float percent){
         // Check if the sound is in the library:
         if (!sounds.containsKey(event_name))
             throw new IllegalArgumentException("There is no sound for '"+event_name+"'");
@@ -66,17 +69,16 @@ public enum SoundManager {
     }
 
     /**
-     * <p>Calling this method will cause the desired sound to be muted.</p>
-     * <p>Calling the method again after muting it will set the sound-volume to the
-     *  same amount it was before muting it.</p>
+     * <p>Mutes/Un-mutes the given sound.</p>
      * @param event_name the event-name of the desired sound.
+     * @param mute whether the sound should be muted or not (un-muted).
      */
-    public void mute(String event_name){
+    public void mute(String event_name, boolean mute){
         // Check if the sound is in the library:
         if (!sounds.containsKey(event_name))
             throw new IllegalArgumentException("There is no sound for '"+event_name+"'");
         // Mute the sound:
-        sounds.get(event_name).mute();
+        sounds.get(event_name).mute(mute);
     }
 
     /**

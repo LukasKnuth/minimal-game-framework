@@ -24,6 +24,9 @@ public class Sound {
     /** The control used to mute this {@code Clip} */
     private BooleanControl mute_control;
 
+    /** A workaround for when there is no mute, only volume control */
+    private float before_mute;
+
     /**
      * Create a new {@code Sound}, which can the be added to the {@link SoundManager}
      *  for playback.
@@ -36,11 +39,18 @@ public class Sound {
     public Sound(String event, URL sound_res){
         this.event = event;
         try {
-            audio = AudioSystem.getClip();
-            audio.open(AudioSystem.getAudioInputStream(sound_res));
+            AudioInputStream audio_in = AudioSystem.getAudioInputStream(sound_res);
+            AudioFormat format = audio_in.getFormat();
+            DataLine.Info info = new DataLine.Info(Clip.class, format);
+            this.audio = (Clip) AudioSystem.getLine(info);
+            this.audio.open(audio_in);
             // Obtain the volume-control:
-            volume_control = (FloatControl) audio.getControl(FloatControl.Type.MASTER_GAIN);
-            mute_control = (BooleanControl) audio.getControl(BooleanControl.Type.MUTE);
+            if (this.audio.isControlSupported(FloatControl.Type.MASTER_GAIN)){
+                volume_control = (FloatControl) audio.getControl(FloatControl.Type.MASTER_GAIN);
+            }
+            if (this.audio.isControlSupported(BooleanControl.Type.MUTE)){
+                mute_control = (BooleanControl) audio.getControl(BooleanControl.Type.MUTE);
+            }
         } catch (LineUnavailableException e){
             System.err.println("Something is blocking the audio line.");
         } catch (Exception e) {
@@ -51,24 +61,42 @@ public class Sound {
     /**
      * This method will set the playback-volume of this {@code Sound}-instance to the
      *  given amount in percent.
-     * @param percent a percent-number (between 0 and 100) where {@code 100} means
-     *  <i>maximum volume</i> and {@code 0} means <i>minimum volume</i>.
+     * @param percent a percent-number (between 0.0 and 1.0) where {@code 1.0} means
+     *  <i>maximum volume</i> and {@code 0.0} means <i>minimum volume</i>.
      */
-    void setVolumePercent(int percent){
-        if (percent < 0 || percent > 100)
-            throw new IllegalArgumentException(percent+"% is not a valid percent-value");
+    void setVolumePercent(float percent){
+        if (percent < 0.0 || percent > 1.0)
+            throw new IllegalArgumentException(percent+" is not a valid percent-value");
+        if (volume_control == null){
+            System.err.println("Volume-Control for sounds is not supported");
+            return;
+        }
         // Set the volume:
-        volume_control.setValue((volume_control.getMinimum() / 100) * (100-percent));
+        float db = (float) ((Math.log((percent != 0.0) ? percent : 1.0E-14) / Math.log(10.0)) * 20.0);
+        volume_control.setValue(db);
+        before_mute = db;
     }
 
     /**
-     * <p>Calling this method will cause this {@code Sound} to be muted.</p>
-     * <p>Calling the method again after muting it will set the sound-volume to the
-     *  same amount it was before muting it.<p>
+     * <p>Mutes/Un-mutes the given sound.</p>
+     * @param mute whether the sound should be muted or not (un-muted).
      */
-    void mute(){
-        // Mute/Un-mute (always the opposite one)
-        mute_control.setValue( !mute_control.getValue() );
+    void mute(boolean mute){
+        if (mute_control == null){
+            // We don't have a mute-control... try using the volume:
+            if (volume_control != null){
+                if (mute){
+                    before_mute = volume_control.getValue();
+                    volume_control.setValue(0);
+                } else {
+                    volume_control.setValue(before_mute);
+                }
+            } else {
+                System.err.println("Muting sounds is not supported.");
+            }
+        } else {
+            mute_control.setValue(mute);
+        }
     }
 
     /**
