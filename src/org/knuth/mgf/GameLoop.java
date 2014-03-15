@@ -132,8 +132,11 @@ public enum GameLoop{
             float interpolation;
             long sleep_time;
 
-            // Start the loop:
             try {
+                // Initialize the input devices:
+                for (InputDevice device : inputDevices.values())
+                    device.initialize();
+                // Start the loop:
                 while (isRunning){
                     // Enforce Max FPS boundary:
                     sleep_time = (last_update + FPS_WAIT_TICKS) - System.currentTimeMillis();
@@ -183,6 +186,10 @@ public enum GameLoop{
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
+            } finally {
+                // Release all InputDevices:
+                for (InputDevice device : inputDevices.values())
+                    device.release();
             }
         }
     };

@@ -9,7 +9,7 @@ import java.awt.event.MouseWheelEvent;
 
 /**
  * <p>This is the a standard input-device for getting input from a standard
- *  mouse with a mouse-wheel andup to three buttons: left, right and middle
+ *  mouse with a mouse-wheel and up to three buttons: left, right and middle
  *  (might be the mouse wheel).</p>
  * <p>A usage example might be found in the
  *  <a href="https://github.com/LukasKnuth/minimal-game-framework/blob/master/tests/system/MouseInputTest.java">{@code MouseInputTest}</a> class.</p>
@@ -68,17 +68,18 @@ public class Mouse implements InputDevice {
         }
     };
 
+    @Override public void release() {}
+
+    @Override
+    public void initialize() {
+        GameLoop.INSTANCE.Viewport.getView().addMouseListener(adapter);
+        GameLoop.INSTANCE.Viewport.getView().addMouseWheelListener(adapter);
+        GameLoop.INSTANCE.Viewport.getView().addMouseMotionListener(adapter);
+    }
+
     /** Whether the {@code MouseAdapter} is registered yet */
-    boolean reg = false;
     @Override
     public void update() {
-        if (!reg){
-            // Register the adapter:
-            GameLoop.INSTANCE.Viewport.getView().addMouseListener(adapter);
-            GameLoop.INSTANCE.Viewport.getView().addMouseWheelListener(adapter);
-            GameLoop.INSTANCE.Viewport.getView().addMouseMotionListener(adapter);
-            reg = true;
-        }
         // Get coordinates relative to the window:
         Point mouse_pointer = MouseInfo.getPointerInfo().getLocation();
         this.x = ((int) mouse_pointer.getX()) - GameLoop.INSTANCE.Viewport.getX();

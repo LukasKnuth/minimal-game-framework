@@ -26,4 +26,19 @@ public interface InputDevice {
      */
     public void update();
 
+    /**
+     * <p>This method is called before {@link #update()} is called the first time, to
+     *  do any initial work necessary to get the input-device ready to receive input.</p>
+     */
+    public void initialize();
+
+    /**
+     * <p>This method is called after the last call to {@link #update()} and should
+     *  release any resources associated with this input-device.</p>
+     * <p>It is save to assume that this method will only be called when the game is
+     *  in the process of shutting down and the device will not be required after this
+     *  method returns.</p>
+     */
+    public void release();
+
 }
