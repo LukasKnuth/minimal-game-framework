@@ -1,6 +1,7 @@
 package org.knuth.mgf;
 
 import org.knuth.mgf.input.InputDevice;
+import org.knuth.mgf.input.Keyboard;
 import org.knuth.mgf.input.Mouse;
 
 import java.util.HashMap;
@@ -93,6 +94,7 @@ public enum GameLoop{
         // Input devices:
         inputDevices = new HashMap<Class<? extends InputDevice>, InputDevice>();
         addInputDevice(new Mouse());
+        addInputDevice(new Keyboard());
     }
 
     /**
