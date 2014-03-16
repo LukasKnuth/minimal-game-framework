@@ -51,7 +51,7 @@ import java.util.List;
  *              <i>pause</i> any running or pending actions, before the other scene
  *              takes over.</p>
  *             <p>If a scene has been paused, it's not guaranteed that it will be
- *              restarted. The only method which is guaranteed to be called is the
+ *              resumed. The only method which is guaranteed to be called is the
  *              {@link #onStop}-method.</p>
  *         </td>
  *     </tr>

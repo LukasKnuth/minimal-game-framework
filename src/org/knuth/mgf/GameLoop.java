@@ -159,7 +159,7 @@ public enum GameLoop{
                         if (!isFrozen() && !isPaused()){
                             // Update the input devices:
                             for (InputDevice device : inputDevices.values())
-                                device.update();
+                                device.update(); // TODO Should be outward, otherwise no input in pause mode...
                             // Do events:
                             Scene scene = scenes.get(scene_id);
                             // Collision-events:

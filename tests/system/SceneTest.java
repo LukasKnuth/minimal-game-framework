@@ -86,6 +86,9 @@ public class SceneTest {
         private float x;
         private int y;
         private float speed = 2.5f;
+        private Color color = Color.GREEN;
+        private final TimeSpan color_switch_interv = TimeSpan.fromSeconds(1);
+        private TimeSpan switch_start = TimeSpan.ZERO;
 
         public Walker(){
             this.x = 0;
@@ -93,18 +96,25 @@ public class SceneTest {
         }
 
         @Override
-        public void move(TimeSpan total_game_time) {
+        public void move(TimeSpan time) {
             if (x < GameLoop.INSTANCE.Viewport.getView().getSize().getWidth())
                 x += speed;
             else {
                 x = 10f;
                 y += 30;
             }
+            // Change colors:
+            if (time.subtract(switch_start).isGreaterThen(color_switch_interv)){
+                if (color == Color.GREEN) color = Color.RED;
+                else color = Color.GREEN;
+                // Reset:
+                switch_start = time;
+            }
         }
 
         @Override
         public void render(Graphics2D g, float interpolation) {
-            g.setColor(Color.GREEN);
+            g.setColor(this.color);
             g.fillOval((int)(x+speed*interpolation), y, 40, 40);
         }
     }
