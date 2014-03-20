@@ -65,6 +65,7 @@ public class SceneTest {
                     g.drawString("Press Space to play...", 200, 300);
                 }
             }, 0);
+            builder.addRenderEvent(new Schedule(), 1);
 
             builder.putKeyBinding(KeyEvent.VK_SPACE, 0, true, new AbstractAction() {
                 @Override
@@ -78,6 +79,43 @@ public class SceneTest {
         @Override
         public void onResume(){
             GameLoop.INSTANCE.Viewport.setBackground(Color.BLACK);
+        }
+    }
+
+    private class Schedule implements RenderEvent{
+        private Color timed_color = Color.WHITE;
+        private ScheduledCallback red_callback;
+
+        public Schedule(){
+            final ScheduledCallback yellow_callback = GameLoop.INSTANCE.scheduleCallback(new Callback() {
+                @Override
+                public void call() {
+                    timed_color = Color.YELLOW;
+                    // Won't be called, since it's canceled...
+                }
+            }, TimeSpan.fromSeconds(3));
+
+            red_callback = GameLoop.INSTANCE.scheduleCallback(new Callback() {
+                @Override
+                public void call() {
+                    timed_color = Color.RED;
+                    yellow_callback.cancel();
+                }
+            }, TimeSpan.fromSeconds(2));
+            GameLoop.INSTANCE.scheduleCallback(new Callback() {
+                @Override
+                public void call() {
+                    timed_color = Color.GREEN;
+                    // Re-schedule:
+                    GameLoop.INSTANCE.rescheduleCallback(red_callback);
+                }
+            }, TimeSpan.fromSeconds(4));
+
+        }
+        @Override
+        public void render(Graphics2D g, float interpolation) {
+            g.setColor(timed_color);
+            g.drawString("In 2 seconds, this will be red and then green and red again", 250, 360);
         }
     }
 

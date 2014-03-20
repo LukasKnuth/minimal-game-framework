@@ -10,7 +10,7 @@ package org.knuth.mgf;
  * @author Lukas Knuth
  * @version 1.0
  */
-public class TimeSpan {
+public class TimeSpan implements Comparable<TimeSpan> {
 
     /** One millisecond in nanoseconds */
     private static final int MILLISECOND_IN_NANOSECONDS = 1000000;
@@ -112,5 +112,35 @@ public class TimeSpan {
      */
     public boolean isLessThen(TimeSpan second_span){
         return this.nano_seconds < second_span.nano_seconds;
+    }
+
+    @Override
+    public int compareTo(TimeSpan o) {
+        if (this.isGreaterThen(o)) return 1;
+        else if (this.isLessThen(o)) return -1;
+        else return 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TimeSpan timeSpan = (TimeSpan) o;
+
+        if (nano_seconds != timeSpan.nano_seconds) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        // See Effective Java Second Edition, Item 9
+        return 31 * 42 + (int) (nano_seconds ^ (nano_seconds >>> 32));
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(nano_seconds);
     }
 }

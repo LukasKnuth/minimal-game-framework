@@ -1,11 +1,13 @@
 package org.knuth.mgf;
 
 import javax.swing.*;
+import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 
 /**
- * <p>A {@code Scene} encapsulates multiple event-objects which shel only be active
+ * <p>A {@code Scene} encapsulates multiple event-objects which shall only be active
  *  in this very {@code Scene}.</p>
  * <p>This is a very easy way to separate multiple "scenes" in the game from one
  *  another. An example might be the menu and the game itself.</p>
@@ -15,6 +17,13 @@ import java.util.List;
  *  multiple of the live-cycle hooks.</p>
  * <p>A scene must be added to the {@code GameLoop} (for example in the game-
  *  bootstrap) and then be started from that class.</p>
+ *
+ *  <h3>Time in scenes</h3>
+ *  <p>Time is local to scenes, meaning that events scheduled with
+ *   {@link org.knuth.mgf.GameLoop#scheduleCallback(Callback, TimeSpan)} are scheduled
+ *   on the current scene. If the scene is paused (due to a switch to another scene),
+ *   time will effectively stop until the scene becomes active again.</p>
+ *  <p>Therefor, the preferred way to pause a scene is, to switch to another scene.</p>
  *
  * <h3>Scene Live-Cycle</h3>
  * <p>Every scene has a live-cycle, in which you can hook in and execute custom
@@ -75,6 +84,8 @@ import java.util.List;
  */
 public class Scene {
 
+    // TODO Add scene-flags to re-draw the last state of the previous scene (store Graphics object?)
+
     /**
      * <p>The possible states of the current {@code Scene}.This is for internal
      *  purposes only!</p>
@@ -88,7 +99,15 @@ public class Scene {
     enum State{
         PENDING, PLAYING, PAUSED, STOPPED
     }
-    State current_state = State.PENDING;
+    private State current_state = State.PENDING;
+    private boolean is_frozen = false;
+
+    /** The time-stamp (in microseconds) when the game-loop was started */
+    private long start_stamp;
+    /** The time-stamp of the moment the game was last paused/frozen */
+    private long pause_stamp;
+    /** The combined amount of time (in microseconds) that the game was paused/frozen */
+    private long excluded_time;
 
     /**
      * <p>The {@code SceneBuilder} is used to add all events and necessary elements to the
@@ -185,6 +204,8 @@ public class Scene {
     /** The {@link Map} with all key-bindings for this scene */
     final InputMap inputMap;
     final ActionMap actionMap;
+    /** Scheduled callbacks on this scene */
+    private final AbstractQueue<ScheduledCallback> schedule;
 
     /**
      * Force sub-classing to initialize new objects.
@@ -195,6 +216,98 @@ public class Scene {
         collisionEvents = new ArrayList<CollisionEvent>();
         inputMap = new ComponentInputMap(GameLoop.INSTANCE.Viewport.getView());
         actionMap = new ActionMap();
+        schedule = new PriorityQueue<ScheduledCallback>();
+    }
+
+    // ############### TIME #####################
+
+    /**
+     * @see org.knuth.mgf.GameLoop#scheduleCallback(Callback, TimeSpan)
+     */
+    ScheduledCallback scheduleCallback(Callback callback, TimeSpan wait_for){
+        ScheduledCallback sch_call = new ScheduledCallback(
+                callback, wait_for, this, getSceneTime().add(wait_for)
+        );
+        this.schedule.add(sch_call);
+        return sch_call;
+    }
+
+    /**
+     * @see org.knuth.mgf.GameLoop#rescheduleCallback(ScheduledCallback)
+     */
+    void rescheduleCallback(ScheduledCallback callback){
+        // Check if this callback is already scheduled:
+        if (this.schedule.contains(callback)){
+            throw new IllegalStateException("This callback is already scheduled.");
+        }
+        // Update the time to execute:
+        TimeSpan wait_for = callback.getTimeToWait();
+        callback.reschedule(getSceneTime().add(wait_for));
+        // add to queue:
+        this.schedule.add(callback);
+    }
+
+    /**
+     * @see ScheduledCallback#cancel()
+     */
+    public void cancelCallback(ScheduledCallback callback) {
+        this.schedule.remove(callback);
+    }
+
+    /**
+     * Check if any previously scheduled callbacks are to be called now.
+     */
+    void checkCallbacks(){
+        TimeSpan scene_time = getSceneTime();
+        for (int i = 0; i < this.schedule.size(); i++){
+            if (scene_time.isGreaterThen(this.schedule.peek().when())){
+                ScheduledCallback callback = this.schedule.poll();
+                callback.execute();
+            } else {
+                /*
+                    If the this element (scheduled for "earlier" execution than the rest)
+                    doesn't fit yet, no others (scheduled for "later" execution) will. So,
+                    we can stop here and return.
+                 */
+                return;
+            }
+        }
+    }
+
+    /**
+     * Get the current time in this scene.
+     */
+    TimeSpan getSceneTime(){
+        return new TimeSpan(
+                System.nanoTime() - start_stamp - excluded_time
+        );
+    }
+
+    /**
+     * @see GameLoop#freeze()
+     */
+    void freeze(){
+        this.is_frozen = true;
+    }
+
+    /**
+     * @see GameLoop#unfreeze()
+     */
+    void unfreeze(){
+        this.is_frozen = false;
+    }
+
+    /**
+     * @see GameLoop#isFrozen()
+     */
+    boolean isFrozen(){
+        return this.is_frozen;
+    }
+
+    // ############## LIVECYCLE ################
+
+    State getSceneState(){
+        return this.current_state;
     }
 
     /**
@@ -204,6 +317,8 @@ public class Scene {
      *  but did not set a {@link Map}.
      */
     void onStartCall(){
+        // Store the current time:
+        start_stamp = System.nanoTime();
         // Call Hook:
         this.onStart(new SceneBuilder());
         // Check if we have a map when a CollisionEvent is presented:
@@ -221,6 +336,7 @@ public class Scene {
         // Call Hook:
         this.onPause();
         current_state = State.PAUSED;
+        pause_stamp = System.nanoTime();
     }
 
     /**
@@ -229,6 +345,10 @@ public class Scene {
      */
     void onResumeCall(){
         this.onResume();
+        if (current_state == State.PAUSED){
+            // unpausing, add the paused time to the excluded time:
+            excluded_time += System.nanoTime() - pause_stamp;
+        }
         current_state = State.PLAYING;
     }
 

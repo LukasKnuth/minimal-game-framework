@@ -46,17 +46,6 @@ public enum GameLoop{
     
     /** Indicates if the game-loop is currently running */
     private boolean isRunning;
-    /** Whether if the game is currently frozen */
-    private boolean isFrozen;
-    /** Whether the game is currently paused */
-    private boolean isPaused;
-
-    /** The time-stamp (in microseconds) when the game-loop was started */
-    private long start_stamp;
-    /** The time-stamp of the moment the game was last paused/frozen */
-    private long pause_stamp;
-    /** The combined amount of time (in microseconds) that the game was paused/frozen */
-    private long excluded_time;
 
     /** The executor-service running the main game-loop */
     private ExecutorService game_loop_executor;
@@ -86,8 +75,6 @@ public enum GameLoop{
      */
     private GameLoop(){
         isRunning = false;
-        isFrozen = false;
-        isPaused = false;
         game_loop_executor = Executors.newSingleThreadExecutor();
         Viewport = new Viewport();
         scenes = new HashMap<String, Scene>();
@@ -107,7 +94,7 @@ public enum GameLoop{
         private String scene_id;
 
         public GameRunnable(){
-            startScene(scenes.get(current_scene));
+            startScene(getCurrentScene());
         }
 
         /**
@@ -119,11 +106,28 @@ public enum GameLoop{
          */
         private void startScene(Scene new_scene){
             Viewport.loadFromScene(new_scene);
-            if (new_scene.current_state == Scene.State.PENDING)
+            if (new_scene.getSceneState() == Scene.State.PENDING)
                 new_scene.onStartCall();
             new_scene.onResumeCall();
             // Update to the new scene:
             scene_id = current_scene;
+        }
+
+        private void updateGame(Scene scene){
+            // Update the input devices:
+            for (InputDevice device : inputDevices.values())
+                device.update();
+            // Check scheduled Callbacks:
+            scene.checkCallbacks();
+            // Update the game:
+            if (!isFrozen()){
+                // Collision-events:
+                for (CollisionEvent event : scene.collisionEvents)
+                    event.detectCollision(scene.game_field.getCollisionTest());
+                // Movement-events:
+                for (MovementEvent event : scene.movementEvents)
+                    event.move(scene.getSceneTime());
+            }
         }
 
         @Override
@@ -155,35 +159,17 @@ public enum GameLoop{
                             Scene new_scene = scenes.get(current_scene);
                             startScene(new_scene);
                         }
-                        // Get the current scene (ensure all events):
-                        if (!isFrozen() && !isPaused()){
-                            // Update the input devices:
-                            for (InputDevice device : inputDevices.values())
-                                device.update(); // TODO Should be outward, otherwise no input in pause mode...
-                            // Do events:
-                            Scene scene = scenes.get(scene_id);
-                            // Collision-events:
-                            for (CollisionEvent event : scene.collisionEvents)
-                                event.detectCollision(scene.game_field.getCollisionTest());
-                            // Calculate the current game-time:
-                            TimeSpan total_game_time = new TimeSpan(
-                                    System.nanoTime() - start_stamp - excluded_time
-                            );
-                            // Movement-events:
-                            for (MovementEvent event : scene.movementEvents)
-                                event.move(total_game_time);
-                        }
+                        // Update events of current scene:
+                        updateGame( scenes.get(scene_id) );
                         // Schedule next update:
                         next_update += WAIT_TICKS;
                         frames_skipped++;
                     }
-                    // Repaint game:
-                    if (!isFrozen()){
-                        // Calculate interpolation for smooth animation between states:
-                        interpolation = ((float)(System.currentTimeMillis() + WAIT_TICKS - next_update)) / ((float)WAIT_TICKS);
-                        // Render-events:
-                        Viewport.canvas.redraw(interpolation);
-                    }
+                    // Repaint game!
+                    // Calculate interpolation for smooth animation between states:
+                    interpolation = ((float)(System.currentTimeMillis() + WAIT_TICKS - next_update)) / ((float)WAIT_TICKS);
+                    // Render-events:
+                    Viewport.canvas.redraw(interpolation);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -290,10 +276,8 @@ public enum GameLoop{
      */
     public void startLoop(){
         if (!isRunning){
-            createMainLoop();
             isRunning = true;
-            // Store the current time:
-            start_stamp = System.nanoTime();
+            createMainLoop();
             // Show the window:
             Viewport.setWindowVisibility(true);
         }
@@ -319,68 +303,80 @@ public enum GameLoop{
         }
         // Stop all scenes if they're running:
         for (Scene scene : scenes.values())
-            if (scene.current_state != Scene.State.PENDING)
+            if (scene.getSceneState() != Scene.State.PENDING)
                 scene.onStopCall();
         // Hide the game-window:
         Viewport.setWindowVisibility(false);
     }
 
     /**
-     * <p>This method will un-pause or un-freeze the game.</p>
-     * <p>Calling this method when the game was not paused/frozen
-     *  will not have any effect.</p>
-     * @see GameLoop#pause()
-     * @see GameLoop#freeze()
+     * Get the currently playing scene.
+     * @throws java.lang.IllegalStateException if there is no scene currently playing or
+     *  no scene added yet.
      */
-    public void play(){
-        this.isFrozen = false;
-        this.isPaused = false;
-        // Add the paused time to the excluded time:
-        excluded_time += System.nanoTime() - pause_stamp;
+    private Scene getCurrentScene(){
+        if (!this.scenes.containsKey(current_scene)){
+            throw new IllegalStateException("No scene is currently playing. There are" +
+                    +this.scenes.size()+" Scenes available.");
+        }
+        return this.scenes.get(current_scene);
     }
 
     /**
-     * <p>This method will freeze the game. This will result in
-     *  {@link CollisionEvent}s, {@link MovementEvent}s and {@link RenderEvent}s
-     *  not being called as long as the game is frozen, other than the
-     *  {@link #pause()}-method, where the game is still rendered.</p>
-     * <p>Use the {@code play()}-method to un-freeze the game.</p>
-     * @see GameLoop#pause()
-     * @see GameLoop#play()
+     * <p>Schedules a callback to be executed in the given {@code wait_time} from
+     *  now.</p>
+     * <p>The time until the callback is triggered is counted as scene time and will
+     *  be paused if the scene gets paused (by switching to another scene). It will
+     *  however <b>not</b> be paused, when the scene is frozen using {@link #freeze()}.</p>
+     * @param callback the callback to be executed once the time is up.
+     * @param wait_time the time to wait until the {@code callback} should be executed.
+     * @return a {@link org.knuth.mgf.ScheduledCallback} to control the now scheduled
+     *  callback.
+     */
+    public ScheduledCallback scheduleCallback(Callback callback, TimeSpan wait_time){
+        return getCurrentScene().scheduleCallback(callback, wait_time);
+    }
+
+    /**
+     * <p>Re-schedules a previously scheduled and <u>either executed or canceled</u> callback
+     *  (using {@link #scheduleCallback(Callback, TimeSpan)}).</p>
+     * @param callback the callback that was previously scheduled.
+     * @return the re-scheduled callback.
+     * @throws java.lang.IllegalStateException if {@code callback} is currently already scheduled.
+     * @see #scheduleCallback(Callback, TimeSpan)
+     */
+    public void rescheduleCallback(ScheduledCallback callback){
+        getCurrentScene().rescheduleCallback(callback);
+    }
+
+    /**
+     * <p>This method will un-freeze the current {@code Scene}.</p>
+     * <p>Calling this method when the {@code Scene} was not frozen
+     *  will not have any effect.</p>
+     * @see GameLoop#freeze()
+     */
+    public void unfreeze(){
+        getCurrentScene().unfreeze();
+    }
+
+    /**
+     * <p>This method will freeze the current {@code Scene}. This will result in
+     *  {@link CollisionEvent}s and {@link MovementEvent}s not being called as long
+     *  as the {@code Scene} is frozen, but the game is still rendered.</p>
+     * <p>Use the {@code unfreeze()}-method to un-freeze the {@code Scene}. A frozen
+     *  {@code Scene} <b>will stay frozen, even if the {@code Scene} is changed</b>.
+     *  It can only be unfrozen with the {@code unfreeze()}-method!</p>
+     * @see GameLoop#unfreeze()
      */
     public void freeze(){
-        this.isFrozen = true;
-        pause_stamp = System.nanoTime();
+        getCurrentScene().freeze();
     }
 
     /**
-     * <p>This method will pause the game. This will result in
-     *  {@link CollisionEvent}s and {@link MovementEvent}s not being
-     *  called as long as the game is paused. The {@link RenderEvent}s
-     *  will still be called.</p>
-     * <p>Use the {@code play()}-method to un-pause the game.</p>
-     * @see GameLoop#freeze()
-     * @see GameLoop#play()
-     */
-    public void pause(){
-        this.isPaused = true;
-        pause_stamp = System.nanoTime();
-    }
-
-    /**
-     * Checks whether the game is currently paused or not.
-     * @return whether the game is currently paused.
-     */
-    public boolean isPaused(){
-        return this.isPaused;
-    }
-
-    /**
-     * Checks whether the game is currently frozen or not.
-     * @return whether the game is currently frozen.
+     * Checks whether the current {@code Scene} is currently frozen or not.
      */
     public boolean isFrozen(){
-        return this.isFrozen;
+        return getCurrentScene().isFrozen();
     }
 
 }

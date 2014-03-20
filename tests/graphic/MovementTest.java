@@ -20,6 +20,7 @@ public class MovementTest extends Scene{
 
     public MovementTest(){
         GameLoop.INSTANCE.Viewport.setTitle("Movement Test");
+        GameLoop.INSTANCE.addScene("pause", new PauseScene());
         GameLoop.INSTANCE.addScene("main", this);
         GameLoop.INSTANCE.startLoop();
     }
@@ -36,8 +37,7 @@ public class MovementTest extends Scene{
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Pause with the "P"-key.
-                if (GameLoop.INSTANCE.isPaused()) GameLoop.INSTANCE.play();
-                else GameLoop.INSTANCE.pause();
+                GameLoop.INSTANCE.switchScene("pause");
             }
         });
         builder.putKeyBinding(KeyEvent.VK_I, 0, false, new AbstractAction() {
@@ -144,6 +144,27 @@ public class MovementTest extends Scene{
                 fps = 0;
                 last = total_game_time;
             }
+        }
+    }
+
+    class PauseScene extends Scene implements RenderEvent{
+
+        @Override
+        public void render(Graphics2D g, float interpolation) {
+            g.setColor(Color.WHITE);
+            g.drawString("Pausing...", 200, 200);
+        }
+
+        @Override
+        protected void onStart(SceneBuilder builder) {
+            super.onStart(builder);
+            builder.addRenderEvent(this, 0);
+            builder.putKeyBinding(KeyEvent.VK_P, 0, false, new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    GameLoop.INSTANCE.switchScene("main");
+                }
+            });
         }
     }
 
